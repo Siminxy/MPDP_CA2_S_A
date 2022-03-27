@@ -21,13 +21,13 @@ namespace
 	const std::vector<AircraftData> Table = InitializeAircraftData();
 }
 
-
 Aircraft::Aircraft(AircraftType type, const TextureHolder& textures, const FontHolder& fonts)
 : Entity(Table[static_cast<int>(type)].m_hitpoints)
 , m_type(type)
 , m_sprite(textures.Get(Table[static_cast<int>(type)].m_texture), Table[static_cast<int>(type)].m_texture_rect)
 , m_explosion(textures.Get(Textures::kExplosion))
 , m_is_firing(false)
+, m_boost_ready(false)
 , m_is_launching_missile(false)
 , m_fire_countdown(sf::Time::Zero)
 , m_is_marked_for_removal(false)
@@ -39,6 +39,8 @@ Aircraft::Aircraft(AircraftType type, const TextureHolder& textures, const FontH
 , m_spread_level(1)
 , m_missile_ammo(2)
 , m_health_display(nullptr)
+, m_boost_display(nullptr)
+, m_player_display(nullptr)
 , m_missile_display(nullptr)
 , m_travelled_distance(0.f)
 , m_directions_index(0)
@@ -52,35 +54,22 @@ Aircraft::Aircraft(AircraftType type, const TextureHolder& textures, const FontH
 	Utility::CentreOrigin(m_sprite);
 	Utility::CentreOrigin(m_explosion);
 
-	m_fire_command.category = static_cast<int>(Category::Type::kScene);
-	m_fire_command.action = [this, &textures](SceneNode& node, sf::Time)
-	{
-		CreateBullets(node, textures);
-	};
-
-	m_missile_command.category = static_cast<int>(Category::Type::kScene);
-	m_missile_command.action = [this, &textures](SceneNode& node, sf::Time)
-	{
-		CreateProjectile(node, ProjectileType::kMissile, 0.f, 0.5f, textures);
-	};
-
-	m_drop_pickup_command.category = static_cast<int>(Category::Type::kScene);
-	m_drop_pickup_command.action = [this, &textures](SceneNode& node, sf::Time)
-	{
-		CreatePickup(node, textures);
-	};
-	
 	std::unique_ptr<TextNode> healthDisplay(new TextNode(fonts, ""));
+	healthDisplay->setPosition(0, 25);
 	m_health_display = healthDisplay.get();
 	AttachChild(std::move(healthDisplay));
 
-	if (Aircraft::GetCategory() == static_cast<int>(Category::kPlayerAircraft))
-	{
-		std::unique_ptr<TextNode> missileDisplay(new TextNode(fonts, ""));
-		missileDisplay->setPosition(0, 70);
-		m_missile_display = missileDisplay.get();
-		AttachChild(std::move(missileDisplay));
-	}
+	std::unique_ptr<TextNode> boostDisplay(new TextNode(fonts, ""));
+	boostDisplay->setPosition(0, -20);
+	m_boost_display = boostDisplay.get();
+	AttachChild(std::move(boostDisplay));
+
+	std::unique_ptr<TextNode> playerDisplay(new TextNode(fonts, ""));
+	playerDisplay->SetString("Player " + m_identifier);
+
+	playerDisplay->setPosition(0, 25);
+	m_player_display = playerDisplay.get();
+	AttachChild(std::move(playerDisplay));
 
 	UpdateTexts();
 
@@ -153,19 +142,18 @@ void Aircraft::UpdateTexts()
 	else
 	{
 		m_health_display->SetString(std::to_string(GetHitPoints()) + "HP");
-	}
-	m_health_display->setPosition(0.f, 50.f);
-	m_health_display->setRotation(-getRotation());
+		m_health_display->setPosition(0.f, 50.f);
+		m_health_display->setRotation(-getRotation());
 
-	if(m_missile_display)
-	{
-		if(m_missile_ammo == 0)
+		m_player_display->SetString("Player " + m_identifier);
+
+		if (m_boost_ready && m_boost_display)
 		{
-			m_missile_display->SetString("");
+			m_boost_display->SetString("Boost Ready!");
 		}
 		else
 		{
-			m_missile_display->SetString("M: " + std::to_string(m_missile_ammo));
+			m_boost_display->SetString("");
 		}
 	}
 
@@ -175,6 +163,7 @@ void Aircraft::UpdateCurrent(sf::Time dt, CommandQueue& commands)
 {
 	UpdateTexts();
 	UpdateRollAnimation();
+	UpdateSpeed();
 
 	//Entity has been destroyed, possibly drop pickup, mark for removal
 	if(IsDestroyed())
@@ -252,7 +241,7 @@ void Aircraft::UpdateMovementPattern(sf::Time dt)
 
 float Aircraft::GetMaxSpeed() const
 {
-	return Table[static_cast<int>(m_type)].m_speed;
+	return Table[static_cast<int>(m_type)].m_max_speed;
 }
 
 void Aircraft::Fire()
@@ -304,6 +293,12 @@ void Aircraft::CheckProjectileLaunch(sf::Time dt, CommandQueue& commands)
 	}
 
 }
+
+void Aircraft::CollectBoost()
+{
+	m_boost_ready = true;
+}
+
 
 bool Aircraft::IsAllied() const
 {
@@ -386,15 +381,16 @@ void Aircraft::UpdateRollAnimation()
 {
 	if (Table[static_cast<int>(m_type)].m_has_roll_animation)
 	{
+		//Note, spritesheet is set up where this value is the neutral, aka. the middle texture
 		sf::IntRect textureRect = Table[static_cast<int>(m_type)].m_texture_rect;
 
-		// Roll left: Texture rect offset once
+		// Roll left: Texture rect offset to the left
 		if (GetVelocity().x < 0.f)
-			textureRect.left += textureRect.width;
+			textureRect.left -= textureRect.width;
 
-		// Roll right: Texture rect offset twice
+		// Roll right: Texture rect offset to the right
 		else if (GetVelocity().x > 0.f)
-			textureRect.left += 2 * textureRect.width;
+			textureRect.left += textureRect.width +1;
 
 		m_sprite.setTextureRect(textureRect);
 	}
@@ -415,6 +411,69 @@ void Aircraft::PlayLocalSound(CommandQueue& commands, SoundEffect effect)
 	commands.Push(command);
 }
 
+
+void Aircraft::UpdateSpeed()
+{
+	float maxSpeedBoost = (m_max_speed / 100.f);
+
+	if (m_use_boost)
+	{
+		m_speed += maxSpeedBoost;
+		++m_counter;
+		if (m_counter > 250)
+		{
+			m_use_boost = false;
+			m_counter = 0;
+		}
+	}
+
+	if (m_speed < 100.f)
+	{
+		m_speed += maxSpeedBoost;
+	}
+	else if (m_speed < m_max_speed)
+	{
+		m_speed += (maxSpeedBoost / 10.f);
+	}
+	else if (!m_use_boost && m_speed > m_max_speed)
+	{
+		m_speed -= maxSpeedBoost;
+	}
+}
+
+float Aircraft::GetSpeed() const
+{
+	return m_speed;
+}
+
+float Aircraft::GetOffroadResistance() const
+{
+	return m_offroad_resistance;
+}
+
+void Aircraft::UseBoost()
+{
+	if (m_boost_ready && !m_use_boost)
+	{
+		m_boost_ready = false;
+		m_use_boost = true;
+	}
+}
+
+void Aircraft::IncreaseSpeed(float speedUp)
+{
+	m_speed = m_speed + (m_speed * speedUp);
+	if (m_speed > m_max_speed)
+		m_speed = m_max_speed;
+}
+
+void Aircraft::DecreaseSpeed(float speedDown)
+{
+	m_speed = m_speed - (m_speed * speedDown);
+	m_speed = m_speed - (m_speed * m_offroad_resistance);
+	if (m_speed < 0)
+		m_speed = 0;
+}
 
 
 

@@ -23,6 +23,13 @@ public:
 	int GetMissileAmmo() const;
 	void SetMissileAmmo(int ammo);
 
+	void UseBoost();
+	void CollectBoost();
+	void IncreaseSpeed(float speed);
+	void DecreaseSpeed(float speed);
+	float GetSpeed() const;
+	float GetOffroadResistance() const;
+
 	void IncreaseFireRate();
 	void IncreaseSpread();
 	void CollectMissiles(unsigned int count);
@@ -49,7 +56,7 @@ private:
 	void CreatePickup(SceneNode& node, const TextureHolder& textures) const;
 	void CheckPickupDrop(CommandQueue& commands);
 	void UpdateRollAnimation();
-
+	void UpdateSpeed();
 
 private:
 	AircraftType m_type;
@@ -82,5 +89,18 @@ private:
 	int m_directions_index;
 
 	int m_identifier;
+
+	bool m_boost_ready;
+	bool m_use_boost;
+	float m_speed;
+	float m_offroad_resistance;
+	unsigned int m_counter;
+
+	bool m_played_explosion_sound;
+	bool m_is_player1;
+
+	float m_max_speed;
+	TextNode* m_boost_display;
+	TextNode* m_player_display;
 };
 

@@ -1,6 +1,7 @@
 #include "DataTables.hpp"
 #include "AircraftType.hpp"
 #include "Aircraft.hpp"
+#include "ObstacleType.hpp"
 #include "ParticleType.hpp"
 #include "PickupType.hpp"
 #include "ProjectileType.hpp"
@@ -11,10 +12,12 @@ std::vector<AircraftData> InitializeAircraftData()
 
 	data[static_cast<int>(AircraftType::kEagle)].m_hitpoints = 100;
 	data[static_cast<int>(AircraftType::kEagle)].m_speed = 200.f;
+	data[static_cast<int>(AircraftType::kEagle)].m_max_speed = 250.f;
 	data[static_cast<int>(AircraftType::kEagle)].m_fire_interval = sf::seconds(1);
-	data[static_cast<int>(AircraftType::kEagle)].m_texture = Textures::kEntities;
-	data[static_cast<int>(AircraftType::kEagle)].m_texture_rect = sf::IntRect(0, 0, 48, 64);
+	data[static_cast<int>(AircraftType::kEagle)].m_texture = Textures::kSpriteSheet;
+	data[static_cast<int>(AircraftType::kEagle)].m_texture_rect = sf::IntRect(58, 0, 57, 29);
 	data[static_cast<int>(AircraftType::kEagle)].m_has_roll_animation = true;
+	data[static_cast<int>(AircraftType::kEagle)].m_offroad_resistance = 0.2f;
 
 	data[static_cast<int>(AircraftType::kRaptor)].m_hitpoints = 20;
 	data[static_cast<int>(AircraftType::kRaptor)].m_speed = 80.f;
@@ -39,6 +42,24 @@ std::vector<AircraftData> InitializeAircraftData()
 	data[static_cast<int>(AircraftType::kAvenger)].m_directions.emplace_back(Direction(0.f, 50.f));
 	data[static_cast<int>(AircraftType::kAvenger)].m_directions.emplace_back(Direction(+45.f, 50.f));
 	data[static_cast<int>(AircraftType::kAvenger)].m_has_roll_animation = false;
+	return data;
+}
+
+std::vector<ObstacleData> InitializeObstacleData()
+{
+	std::vector<ObstacleData> data(static_cast<int>(ObstacleType::kObstacleCount));
+
+	data[static_cast<int>(ObstacleType::kTarSpill)].m_texture = Textures::kSpriteSheet;
+	data[static_cast<int>(ObstacleType::kTarSpill)].m_texture_rect = sf::IntRect(123, 153, 45, 19);
+	data[static_cast<int>(ObstacleType::kTarSpill)].m_slow_down_amount = 0.4f;
+
+	data[static_cast<int>(ObstacleType::kAcidSpill)].m_texture = Textures::kSpriteSheet;
+	data[static_cast<int>(ObstacleType::kAcidSpill)].m_texture_rect = sf::IntRect(124, 132, 45, 19);
+	data[static_cast<int>(ObstacleType::kAcidSpill)].m_slow_down_amount = 0.2f;
+
+	data[static_cast<int>(ObstacleType::kBarrier)].m_texture = Textures::kSpriteSheet;
+	data[static_cast<int>(ObstacleType::kBarrier)].m_texture_rect = sf::IntRect(182, 86, 17, 29);
+	data[static_cast<int>(ObstacleType::kBarrier)].m_slow_down_amount = 0.9f;
 	return data;
 }
 

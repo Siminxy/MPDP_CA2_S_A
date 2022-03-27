@@ -17,6 +17,7 @@ namespace Server
 		AcceptCoopPartner,
 		SpawnEnemy,
 		SpawnPickup,
+		SpawnObstacle,
 		SpawnSelf,
 		UpdateClientState,
 		MissionSuccess

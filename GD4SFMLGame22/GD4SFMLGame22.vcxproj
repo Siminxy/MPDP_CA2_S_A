@@ -167,6 +167,7 @@
     <ClCompile Include="MultiplayerGameState.cpp" />
     <ClCompile Include="MusicPlayer.cpp" />
     <ClCompile Include="NetworkNode.cpp" />
+    <ClCompile Include="Obstacle.cpp" />
     <ClCompile Include="ParticleNode.cpp" />
     <ClCompile Include="PauseState.cpp" />
     <ClCompile Include="Pickup.cpp" />
@@ -215,6 +216,8 @@
     <ClInclude Include="MusicThemes.hpp" />
     <ClInclude Include="NetworkNode.hpp" />
     <ClInclude Include="NetworkProtocol.hpp" />
+    <ClInclude Include="Obstacle.h" />
+    <ClInclude Include="ObstacleType.hpp" />
     <ClInclude Include="Particle.hpp" />
     <ClInclude Include="ParticleNode.hpp" />
     <ClInclude Include="ParticleType.hpp" />

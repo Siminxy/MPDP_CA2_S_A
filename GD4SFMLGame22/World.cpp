@@ -4,6 +4,7 @@
 #include <iostream>
 #include <limits>
 
+#include "Obstacle.h"
 #include "ParticleNode.hpp"
 #include "ParticleType.hpp"
 #include "Pickup.hpp"
@@ -20,12 +21,13 @@ World::World(sf::RenderTarget& output_target, FontHolder& font, SoundPlayer& sou
 	, m_sounds(sounds)
 	, m_scenegraph()
 	, m_scene_layers()
-	, m_world_bounds(0.f, 0.f, m_camera.getSize().x, 5000.f)
+	, m_world_bounds(0.f, 0.f, 5000, m_camera.getSize().x)
 	, m_spawn_position(m_camera.getSize().x/2.f, m_world_bounds.height - m_camera.getSize().y /2.f)
 	, m_scrollspeed(-50.f)
 	, m_scrollspeed_compensation(1.f)
 	, m_player_aircraft()
 	, m_enemy_spawn_points()
+	, m_obstacle_spawn_points()
 	, m_active_enemies()
 	, m_networked_world(networked)
 	, m_network_node(nullptr)
@@ -46,7 +48,7 @@ void World::SetWorldScrollCompensation(float compensation)
 void World::Update(sf::Time dt)
 {
 	//Scroll the world
-	m_camera.move(0, m_scrollspeed * dt.asSeconds()*m_scrollspeed_compensation);
+	m_camera.move(-(m_scrollspeed * dt.asSeconds() * m_scrollspeed_compensation), 0);
 
 	for (Aircraft* a : m_player_aircraft)
 	{
@@ -174,6 +176,7 @@ void World::LoadTextures()
 	m_textures.Load(Textures::kExplosion, "Media/Textures/Explosion.png");
 	m_textures.Load(Textures::kParticle, "Media/Textures/Particle.png");
 	m_textures.Load(Textures::kFinishLine, "Media/Textures/FinishLine.png");
+	m_textures.Load(Textures::kSpriteSheet, "Media/Textures/SpriteSheet.png");
 }
 
 void World::BuildScene()
@@ -302,6 +305,67 @@ void World::SpawnEnemies()
 		m_enemy_spawn_points.pop_back();
 		
 	}
+}
+
+//Something breaking here, specifically seems to be the obstacleSpawnpoint
+//void World::SpawnObstacles()
+//{
+//	//Spawn an obstacle when they are relevant - they are relevant when they enter the battlefield bounds
+//	while (!m_obstacle_spawn_points.empty() && m_obstacle_spawn_points.back().m_y > GetBattlefieldBounds().top)
+//	{
+//		ObstacleSpawnPoint spawn = m_obstacle_spawn_points.back();
+//		std::cout << static_cast<int>(spawn.m_type) << std::endl;
+//		//std::unique_ptr<Obstacle> enemy(new Obstacle(spawn.m_type, m_textures));
+//		//std::unique_ptr<Obstacle> obs (new Obstacle(spawn.m_type, m_textures));
+//		//obs->setPosition(spawn.m_x, spawn.m_y);
+//		//m_scene_layers[static_cast<int>(Layers::kUpperAir)]->AttachChild(std::move(obs));
+//		m_obstacle_spawn_points.pop_back();
+//	}
+//}
+
+void World::AddObstacle(ObstacleType type, float relX, float relY)
+{
+	ObstacleSpawnPoint spawn(type, relX, relY);
+	m_obstacle_spawn_points.emplace_back(spawn);
+}
+
+void World::AddObstacles()
+{
+	if (m_networked_world)
+	{
+		return;
+	}
+	//Add obstacles
+	//450.f, 550.f, 650.f ( range of the road)
+	AddObstacle(ObstacleType::kBarrier, 200.f, 450.f);
+
+	AddObstacle(ObstacleType::kTarSpill, 500.f, 450.f);
+
+	AddObstacle(ObstacleType::kTarSpill, 800.f, 650.f);
+	AddObstacle(ObstacleType::kAcidSpill, 850.f, 450.f);
+	AddObstacle(ObstacleType::kBarrier, 900.f, 550.f);
+
+	AddObstacle(ObstacleType::kBarrier, 1450.f, 650.f);
+	AddObstacle(ObstacleType::kBarrier, 1950.f, 550.f);
+	AddObstacle(ObstacleType::kBarrier, 2000.f, 550.f);
+
+	AddObstacle(ObstacleType::kAcidSpill, 2250.f, 550.f);
+	AddObstacle(ObstacleType::kTarSpill, 2250.f, 450.f);
+
+	AddObstacle(ObstacleType::kTarSpill, 2850.f, 450.f);
+	AddObstacle(ObstacleType::kAcidSpill, 3050.f, 450.f);
+	AddObstacle(ObstacleType::kTarSpill, 3550.f, 450.f);
+	AddObstacle(ObstacleType::kBarrier, 3750.f, 550.f);
+
+	AddObstacle(ObstacleType::kAcidSpill, 3750.f, 450.f);
+	AddObstacle(ObstacleType::kTarSpill, 4000.f, 450.f);
+
+	AddObstacle(ObstacleType::kBarrier, 4000.f, 500.f);
+	AddObstacle(ObstacleType::kAcidSpill, 4250.f, 650.f);
+	AddObstacle(ObstacleType::kTarSpill, 4250.f, 450.f);
+
+	AddObstacle(ObstacleType::kTarSpill, 4550.f, 500.f);
+	AddObstacle(ObstacleType::kAcidSpill, 4850.f, 550.f);
 }
 
 void World::AddEnemy(AircraftType type, float relX, float relY)

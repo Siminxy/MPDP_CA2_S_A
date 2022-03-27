@@ -7,5 +7,6 @@ enum class Textures
 	kButtons,
 	kExplosion,
 	kParticle,
-	kFinishLine
+	kFinishLine,
+	kSpriteSheet
 };

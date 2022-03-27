@@ -22,6 +22,7 @@
 #include "SoundPlayer.hpp"
 
 #include "NetworkProtocol.hpp"
+#include "ObstacleType.hpp"
 #include "PickupType.hpp"
 #include "PlayerAction.hpp"
 
@@ -74,6 +75,10 @@ private:
 	void DestroyEntitiesOutsideView();
 	void UpdateSounds();
 
+	void SpawnObstacles();
+	void AddObstacle(ObstacleType type, float relX, float relY);
+	void AddObstacles();
+
 private:
 	struct SpawnPoint
 	{
@@ -82,6 +87,17 @@ private:
 			
 		}
 		AircraftType m_type;
+		float m_x;
+		float m_y;
+	};
+
+	struct ObstacleSpawnPoint
+	{
+		ObstacleSpawnPoint(ObstacleType type, float x, float y) : m_type(type), m_x(x), m_y(y)
+		{
+
+		}
+		ObstacleType m_type;
 		float m_x;
 		float m_y;
 	};
@@ -104,6 +120,7 @@ private:
 	float m_scrollspeed_compensation;
 	std::vector<Aircraft*> m_player_aircraft;
 	std::vector<SpawnPoint> m_enemy_spawn_points;
+	std::vector<ObstacleSpawnPoint> m_obstacle_spawn_points;
 	std::vector<Aircraft*>	m_active_enemies;
 
 	BloomEffect m_bloom_effect;

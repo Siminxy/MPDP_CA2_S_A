@@ -28,6 +28,8 @@ struct AircraftData
 	sf::Time m_fire_interval;
 	std::vector<Direction> m_directions;
 	bool m_has_roll_animation;
+	float m_offroad_resistance;
+	float m_max_speed;
 };
 
 struct ProjectileData
@@ -45,6 +47,13 @@ struct PickupData
 	sf::IntRect m_texture_rect;
 };
 
+struct ObstacleData
+{
+	float m_slow_down_amount;
+	Textures m_texture;
+	sf::IntRect m_texture_rect;
+};
+
 struct ParticleData
 {
 	sf::Color						m_color;
@@ -55,5 +64,4 @@ std::vector<AircraftData> InitializeAircraftData();
 std::vector<ProjectileData> InitializeProjectileData();
 std::vector<PickupData> InitializePickupData();
 std::vector<ParticleData> InitializeParticleData();
-
-
+std::vector<ObstacleData> InitializeObstacleData();

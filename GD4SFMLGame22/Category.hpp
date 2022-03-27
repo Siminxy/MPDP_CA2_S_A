@@ -15,6 +15,7 @@ namespace Category
 		kParticleSystem = 1 << 7,
 		kSoundEffect = 1 << 8,
 		kNetwork = 1 << 9,
+		kObstacle = 1 << 10,
 
 		kAircraft = kPlayerAircraft | kAlliedAircraft | kEnemyAircraft,
 		kProjectile = kAlliedProjectile | kEnemyProjectile,
