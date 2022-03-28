@@ -172,7 +172,7 @@ bool World::HasPlayerReachedEnd() const
 void World::LoadTextures()
 {
 	m_textures.Load(Textures::kEntities, "Media/Textures/Entities.png");
-	m_textures.Load(Textures::kJungle, "Media/Textures/Jungle.png");
+	m_textures.Load(Textures::kCity, "Media/Textures/Background.png");
 	m_textures.Load(Textures::kExplosion, "Media/Textures/Explosion.png");
 	m_textures.Load(Textures::kParticle, "Media/Textures/Particle.png");
 	m_textures.Load(Textures::kFinishLine, "Media/Textures/FinishLine.png");
@@ -191,24 +191,24 @@ void World::BuildScene()
 	}
 
 	//Prepare the background
-	sf::Texture& jungle_texture = m_textures.Get(Textures::kJungle);
+	sf::Texture& city_texture = m_textures.Get(Textures::kCity);
 	//sf::IntRect textureRect(m_world_bounds);
 	//Tile the texture to cover our world
-	jungle_texture.setRepeated(true);
+	city_texture.setRepeated(true);
 
 	float view_height = m_camera.getSize().y;
 	sf::IntRect texture_rect(m_world_bounds);
 	texture_rect.height += static_cast<int>(view_height);
 
 	//Add the background sprite to our scene
-	std::unique_ptr<SpriteNode> jungle_sprite(new SpriteNode(jungle_texture, texture_rect));
-	jungle_sprite->setPosition(m_world_bounds.left, m_world_bounds.top - view_height);
-	m_scene_layers[static_cast<int>(Layers::kBackground)]->AttachChild(std::move(jungle_sprite));
+	std::unique_ptr<SpriteNode> city_sprite(new SpriteNode(city_texture, texture_rect));
+	city_sprite->setPosition(m_world_bounds.left, m_world_bounds.top + 250);
+	m_scene_layers[static_cast<int>(Layers::kBackground)]->AttachChild(std::move(city_sprite));
 
 	// Add the finish line to the scene
 	sf::Texture& finish_texture = m_textures.Get(Textures::kFinishLine);
 	std::unique_ptr<SpriteNode> finish_sprite(new SpriteNode(finish_texture));
-	finish_sprite->setPosition(0.f, -76.f);
+	finish_sprite->setPosition(4000.0f, 645);
 	m_finish_sprite = finish_sprite.get();
 	m_scene_layers[static_cast<int>(Layers::kBackground)]->AttachChild(std::move(finish_sprite));
 
@@ -244,12 +244,13 @@ void World::AdaptPlayerPosition()
 	//Keep all players on the screen, at least border_distance from the border
 	sf::FloatRect view_bounds = GetViewBounds();
 	const float border_distance = 40.f;
+	const float barrier_distance = 650.0f;
 	for (Aircraft* aircraft : m_player_aircraft)
 	{
 		sf::Vector2f position = aircraft->getPosition();
 		position.x = std::max(position.x, view_bounds.left + border_distance);
 		position.x = std::min(position.x, view_bounds.left + view_bounds.width - border_distance);
-		position.y = std::max(position.y, view_bounds.top + border_distance);
+		position.y = std::max(position.y, barrier_distance);
 		position.y = std::min(position.y, view_bounds.top + view_bounds.height - border_distance);
 		aircraft->setPosition(position);
 	}
@@ -520,13 +521,47 @@ void World::HandleCollisions()
 		}
 
 
+		/*
+		 * if(MatchesCategories(pair, Category::Type::kPlayerAircraft, Category::kPlayerAircraft))
+		{
+			auto& player1 = static_cast<Aircraft&>(*pair.first);
+			auto& player2 = static_cast<Aircraft&>(*pair.second);
+			//Collision
+			player1.DecreaseSpeed(50.f);
+			player2.DecreaseSpeed(50.f);
+		}
+		 */
+
+
+		//if (MatchesCategories(pair, Category::Type::kPlayerAircraft, Category::kPickup))
+		//{
+		//	auto& player = static_cast<Aircraft&>(*pair.first);
+		//	auto& pickup = static_cast<Pickup&>(*pair.second);
+		//	//Apply the pickup effect
+		//	pickup.Apply(player);
+		//	pickup.Destroy();
+		//	player.PlayLocalSound(m_command_queue, SoundEffect::kBoostGet);
+		//}
+
+		//else if (MatchesCategories(pair, Category::Type::kPlayerAircraft, Category::Type::kObstacle))
+		//{
+		//	auto& bike = static_cast<Aircraft&>(*pair.first);
+		//	auto& obstacle = static_cast<Obstacle&>(*pair.second);
+
+		//	//Apply the slowdown to the plane
+		//	bike.DecreaseSpeed(obstacle.GetSlowdown());
+		//	obstacle.Destroy();
+		//	bike.Damage(10);
+
+		//	bike.PlayLocalSound(m_command_queue, SoundEffect::kCollision);
+		//}
 	}
 }
 
 void World::DestroyEntitiesOutsideView()
 {
 	Command command;
-	command.category = Category::Type::kEnemyAircraft | Category::Type::kProjectile;
+	command.category = Category::Type::kEnemyAircraft | Category::Type::kProjectile | Category::Type::kObstacle;
 	command.action = DerivedAction<Entity>([this](Entity& e, sf::Time)
 	{
 		//Does the object intersect with the battlefield

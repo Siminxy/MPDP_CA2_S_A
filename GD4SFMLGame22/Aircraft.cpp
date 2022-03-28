@@ -27,7 +27,7 @@ Aircraft::Aircraft(AircraftType type, const TextureHolder& textures, const FontH
 , m_sprite(textures.Get(Table[static_cast<int>(type)].m_texture), Table[static_cast<int>(type)].m_texture_rect)
 , m_explosion(textures.Get(Textures::kExplosion))
 , m_is_firing(false)
-, m_boost_ready(false)
+, m_boost_ready(true)
 , m_is_launching_missile(false)
 , m_fire_countdown(sf::Time::Zero)
 , m_is_marked_for_removal(false)
@@ -50,6 +50,9 @@ Aircraft::Aircraft(AircraftType type, const TextureHolder& textures, const FontH
 	m_explosion.SetNumFrames(16);
 	m_explosion.SetDuration(sf::seconds(1));
 
+	sf::IntRect textureRect = Table[static_cast<int>(m_type)].m_texture_rect;
+	textureRect.top += 30;
+	m_sprite.setTextureRect(textureRect);
 
 	Utility::CentreOrigin(m_sprite);
 	Utility::CentreOrigin(m_explosion);
@@ -64,8 +67,7 @@ Aircraft::Aircraft(AircraftType type, const TextureHolder& textures, const FontH
 	m_boost_display = boostDisplay.get();
 	AttachChild(std::move(boostDisplay));
 
-	std::unique_ptr<TextNode> playerDisplay(new TextNode(fonts, ""));
-	playerDisplay->SetString("Player " + m_identifier);
+	std::unique_ptr<TextNode> playerDisplay(new TextNode(fonts, "Player " + std::to_string(m_identifier)));
 
 	playerDisplay->setPosition(0, 25);
 	m_player_display = playerDisplay.get();
@@ -145,7 +147,7 @@ void Aircraft::UpdateTexts()
 		m_health_display->setPosition(0.f, 50.f);
 		m_health_display->setRotation(-getRotation());
 
-		m_player_display->SetString("Player " + m_identifier);
+		m_player_display->SetString("Player " + std::to_string(m_identifier));
 
 		if (m_boost_ready && m_boost_display)
 		{
@@ -384,6 +386,10 @@ void Aircraft::UpdateRollAnimation()
 		//Note, spritesheet is set up where this value is the neutral, aka. the middle texture
 		sf::IntRect textureRect = Table[static_cast<int>(m_type)].m_texture_rect;
 
+		if (m_identifier > 1)
+			textureRect.top = (30 * m_identifier) % (4 * 30);
+
+		//textureRect.top += 30;
 		// Roll left: Texture rect offset to the left
 		if (GetVelocity().x < 0.f)
 			textureRect.left -= textureRect.width;

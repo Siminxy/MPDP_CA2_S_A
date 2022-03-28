@@ -3,6 +3,7 @@
 #include "NetworkProtocol.hpp"
 #include <SFML/Network/Packet.hpp>
 #include <algorithm>
+#include <iostream>
 
 struct AircraftMover
 {
@@ -36,6 +37,22 @@ struct AircraftFireTrigger
 	{
 		if (aircraft.GetIdentifier() == aircraft_id)
 			aircraft.Fire();
+	}
+
+	int aircraft_id;
+};
+
+struct AircrafBoostTrigger
+{
+	AircrafBoostTrigger(int identifier)
+		: aircraft_id(identifier)
+	{
+	}
+
+	void operator() (Aircraft& aircraft, sf::Time) const
+	{
+		if (aircraft.GetIdentifier() == aircraft_id)
+			aircraft.UseBoost();
 	}
 
 	int aircraft_id;
@@ -190,6 +207,7 @@ void Player::InitialiseActions()
 	m_action_binding[PlayerAction::kMoveUp].action = DerivedAction<Aircraft>(AircraftMover(0, -1, m_identifier));
 	m_action_binding[PlayerAction::kMoveDown].action = DerivedAction<Aircraft>(AircraftMover(0, +1, m_identifier));
 	m_action_binding[PlayerAction::kFire].action = DerivedAction<Aircraft>(AircraftFireTrigger(m_identifier));
+	//m_action_binding[PlayerAction::kBoost].action = DerivedAction<Aircraft>(AircrafBoostTrigger(m_identifier));
 	m_action_binding[PlayerAction::kLaunchMissile].action = DerivedAction<Aircraft>(AircraftMissileTrigger(m_identifier));
 }
 

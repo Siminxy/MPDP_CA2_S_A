@@ -45,6 +45,13 @@ std::vector<AircraftData> InitializeAircraftData()
 	return data;
 }
 
+//All bike sprites are lined up the same, only add +30 to top distance. 4 in all.
+//data[static_cast<int>(AircraftType::kPlayer1)].m_texture_rect = sf::IntRect(58, 0, 57, 29);
+//data[static_cast<int>(AircraftType::kPlayer2)].m_texture_rect = sf::IntRect(58, 30, 57, 29);
+//data[static_cast<int>(AircraftType::kOffroader)].m_texture_rect = sf::IntRect(58, 60, 57, 29);
+//data[static_cast<int>(AircraftType::kRacer)].m_texture_rect = sf::IntRect(58, 90, 57, 29);
+
+
 std::vector<ObstacleData> InitializeObstacleData()
 {
 	std::vector<ObstacleData> data(static_cast<int>(ObstacleType::kObstacleCount));
@@ -104,6 +111,15 @@ std::vector<PickupData> InitializePickupData()
 	data[static_cast<int>(PickupType::kFireRate)].m_texture = Textures::kEntities;
 	data[static_cast<int>(PickupType::kFireRate)].m_texture_rect = sf::IntRect(120, 64, 40, 40);
 	data[static_cast<int>(PickupType::kFireRate)].m_action = std::bind(&Aircraft::IncreaseFireRate, std::placeholders::_1);
+
+	data[static_cast<int>(PickupType::kInvincible)].m_texture = Textures::kSpriteSheet;
+	data[static_cast<int>(PickupType::kInvincible)].m_texture_rect = sf::IntRect(150, 171, 29, 28);
+	data[static_cast<int>(PickupType::kInvincible)].m_action = [](Aircraft& a) {a.Repair(25); };
+
+	data[static_cast<int>(PickupType::kBoostRefill)].m_texture = Textures::kSpriteSheet;
+	data[static_cast<int>(PickupType::kBoostRefill)].m_texture_rect = sf::IntRect(171, 122, 29, 28);
+	data[static_cast<int>(PickupType::kBoostRefill)].m_action = [](Aircraft& a) {a.CollectBoost(); };
+
 	return data;
 }
 

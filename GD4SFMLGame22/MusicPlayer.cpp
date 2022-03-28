@@ -4,8 +4,8 @@
 MusicPlayer::MusicPlayer()
 	: m_volume(100.f)
 {
-	m_filenames[MusicThemes::kMenuTheme] = "Media/Music/MenuTheme.ogg";
-	m_filenames[MusicThemes::kMissionTheme] = "Media/Music/MissionTheme.ogg";
+	m_filenames[MusicThemes::kMenuTheme] = "Media/Music/TitleMusic.wav";
+	m_filenames[MusicThemes::kMissionTheme] = "Media/Music/GameMusic.wav";
 }
 
 void MusicPlayer::Play(MusicThemes theme)
