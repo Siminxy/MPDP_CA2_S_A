@@ -1,4 +1,4 @@
-#include "Aircraft.hpp"
+#include "Bike.hpp"
 
 #include <iostream>
 
@@ -18,10 +18,10 @@
 
 namespace
 {
-	const std::vector<AircraftData> Table = InitializeAircraftData();
+	const std::vector<BikeData> Table = InitializeBikeData();
 }
 
-Aircraft::Aircraft(AircraftType type, const TextureHolder& textures, const FontHolder& fonts)
+Bike::Bike(BikeType type, const TextureHolder& textures, const FontHolder& fonts)
 : Entity(Table[static_cast<int>(type)].m_hitpoints)
 , m_type(type)
 , m_sprite(textures.Get(Table[static_cast<int>(type)].m_texture), Table[static_cast<int>(type)].m_texture_rect)
@@ -77,17 +77,17 @@ Aircraft::Aircraft(AircraftType type, const TextureHolder& textures, const FontH
 
 }
 
-int Aircraft::GetMissileAmmo() const
+int Bike::GetMissileAmmo() const
 {
 	return m_missile_ammo;
 }
 
-void Aircraft::SetMissileAmmo(int ammo)
+void Bike::SetMissileAmmo(int ammo)
 {
 	m_missile_ammo = ammo;
 }
 
-void Aircraft::DrawCurrent(sf::RenderTarget& target, sf::RenderStates states) const
+void Bike::DrawCurrent(sf::RenderTarget& target, sf::RenderStates states) const
 {
 	if(IsDestroyed() && m_show_explosion)
 	{
@@ -99,22 +99,22 @@ void Aircraft::DrawCurrent(sf::RenderTarget& target, sf::RenderStates states) co
 	}
 }
 
-void Aircraft::DisablePickups()
+void Bike::DisablePickups()
 {
 	m_pickups_enabled = false;
 }
 
 
-unsigned int Aircraft::GetCategory() const
+unsigned int Bike::GetCategory() const
 {
 	if (IsAllied())
 	{
-		return static_cast<int>(Category::kPlayerAircraft);
+		return static_cast<int>(Category::kPlayerBike);
 	}
 	return static_cast<int>(Category::kEnemyAircraft);
 }
 
-void Aircraft::IncreaseFireRate()
+void Bike::IncreaseFireRate()
 {
 	if(m_fire_rate < 10)
 	{
@@ -122,7 +122,7 @@ void Aircraft::IncreaseFireRate()
 	}
 }
 
-void Aircraft::IncreaseSpread()
+void Bike::IncreaseSpread()
 {
 	if(m_spread_level < 3)
 	{
@@ -130,12 +130,12 @@ void Aircraft::IncreaseSpread()
 	}
 }
 
-void Aircraft::CollectMissiles(unsigned int count)
+void Bike::CollectMissiles(unsigned int count)
 {
 	m_missile_ammo += count;
 }
 
-void Aircraft::UpdateTexts()
+void Bike::UpdateTexts()
 {
 	if(IsDestroyed())
 	{
@@ -161,7 +161,7 @@ void Aircraft::UpdateTexts()
 
 }
 
-void Aircraft::UpdateCurrent(sf::Time dt, CommandQueue& commands)
+void Bike::UpdateCurrent(sf::Time dt, CommandQueue& commands)
 {
 	UpdateTexts();
 	UpdateRollAnimation();
@@ -205,17 +205,17 @@ void Aircraft::UpdateCurrent(sf::Time dt, CommandQueue& commands)
 	Entity::UpdateCurrent(dt, commands);
 }
 
-int	Aircraft::GetIdentifier()
+int	Bike::GetIdentifier()
 {
 	return m_identifier;
 }
 
-void Aircraft::SetIdentifier(int identifier)
+void Bike::SetIdentifier(int identifier)
 {
 	m_identifier = identifier;
 }
 
-void Aircraft::UpdateMovementPattern(sf::Time dt)
+void Bike::UpdateMovementPattern(sf::Time dt)
 {
 	//Enemy AI
 	const std::vector<Direction>& directions = Table[static_cast<int>(m_type)].m_directions;
@@ -241,12 +241,12 @@ void Aircraft::UpdateMovementPattern(sf::Time dt)
 
 }
 
-float Aircraft::GetMaxSpeed() const
+float Bike::GetMaxSpeed() const
 {
 	return Table[static_cast<int>(m_type)].m_max_speed;
 }
 
-void Aircraft::Fire()
+void Bike::Fire()
 {
 	//Only ships with a non-zero fire interval fire
 	if(Table[static_cast<int>(m_type)].m_fire_interval != sf::Time::Zero)
@@ -255,7 +255,7 @@ void Aircraft::Fire()
 	}
 }
 
-void Aircraft::LaunchMissile()
+void Bike::LaunchMissile()
 {
 	if(m_missile_ammo > 0)
 	{
@@ -264,7 +264,7 @@ void Aircraft::LaunchMissile()
 	}
 }
 
-void Aircraft::CheckProjectileLaunch(sf::Time dt, CommandQueue& commands)
+void Bike::CheckProjectileLaunch(sf::Time dt, CommandQueue& commands)
 {
 	//Enemies try and fire as often as possible
 	if(!IsAllied())
@@ -296,20 +296,20 @@ void Aircraft::CheckProjectileLaunch(sf::Time dt, CommandQueue& commands)
 
 }
 
-void Aircraft::CollectBoost()
+void Bike::CollectBoost()
 {
 	m_boost_ready = true;
 }
 
 
-bool Aircraft::IsAllied() const
+bool Bike::IsAllied() const
 {
-	return m_type == AircraftType::kEagle;
+	return m_type == BikeType::kRacer;
 }
 
 
 //TODO Do enemies need a different offset as they are flying down the screen?
-void Aircraft::CreateBullets(SceneNode& node, const TextureHolder& textures) const
+void Bike::CreateBullets(SceneNode& node, const TextureHolder& textures) const
 {
 	ProjectileType type = IsAllied() ? ProjectileType::kAlliedBullet : ProjectileType::kEnemyBullet;
 	switch(m_spread_level)
@@ -331,7 +331,7 @@ void Aircraft::CreateBullets(SceneNode& node, const TextureHolder& textures) con
 
 }
 
-void Aircraft::CreateProjectile(SceneNode& node, ProjectileType type, float x_offset, float y_offset,
+void Bike::CreateProjectile(SceneNode& node, ProjectileType type, float x_offset, float y_offset,
 	const TextureHolder& textures) const
 {
 	std::unique_ptr<Projectile> projectile(new Projectile(type, textures));
@@ -344,23 +344,23 @@ void Aircraft::CreateProjectile(SceneNode& node, ProjectileType type, float x_of
 	node.AttachChild(std::move(projectile));
 }
 
-sf::FloatRect Aircraft::GetBoundingRect() const
+sf::FloatRect Bike::GetBoundingRect() const
 {
 	return GetWorldTransform().transformRect(m_sprite.getGlobalBounds());
 }
 
-bool Aircraft::IsMarkedForRemoval() const
+bool Bike::IsMarkedForRemoval() const
 {
 	return IsDestroyed() && (m_explosion.IsFinished() || !m_show_explosion);
 }
 
-void Aircraft::Remove()
+void Bike::Remove()
 {
 	Entity::Remove();
 	m_show_explosion = false;
 }
 
-void Aircraft::CheckPickupDrop(CommandQueue& commands)
+void Bike::CheckPickupDrop(CommandQueue& commands)
 {
 	if(!IsAllied() && Utility::RandomInt(3) == 0 && !m_spawned_pickup)
 	{
@@ -369,7 +369,7 @@ void Aircraft::CheckPickupDrop(CommandQueue& commands)
 	m_spawned_pickup = true;
 }
 
-void Aircraft::CreatePickup(SceneNode& node, const TextureHolder& textures) const
+void Bike::CreatePickup(SceneNode& node, const TextureHolder& textures) const
 {
 	auto type = static_cast<PickupType>(Utility::RandomInt(static_cast<int>(PickupType::kPickupCount)));
 	std::unique_ptr<Pickup> pickup(new Pickup(type, textures));
@@ -379,7 +379,7 @@ void Aircraft::CreatePickup(SceneNode& node, const TextureHolder& textures) cons
 }
 
 
-void Aircraft::UpdateRollAnimation()
+void Bike::UpdateRollAnimation()
 {
 	if (Table[static_cast<int>(m_type)].m_has_roll_animation)
 	{
@@ -402,7 +402,7 @@ void Aircraft::UpdateRollAnimation()
 	}
 }
 
-void Aircraft::PlayLocalSound(CommandQueue& commands, SoundEffect effect)
+void Bike::PlayLocalSound(CommandQueue& commands, SoundEffect effect)
 {
 	sf::Vector2f world_position = GetWorldPosition();
 
@@ -418,7 +418,7 @@ void Aircraft::PlayLocalSound(CommandQueue& commands, SoundEffect effect)
 }
 
 
-void Aircraft::UpdateSpeed()
+void Bike::UpdateSpeed()
 {
 	float maxSpeedBoost = (m_max_speed / 100.f);
 
@@ -447,17 +447,17 @@ void Aircraft::UpdateSpeed()
 	}
 }
 
-float Aircraft::GetSpeed() const
+float Bike::GetSpeed() const
 {
 	return m_speed;
 }
 
-float Aircraft::GetOffroadResistance() const
+float Bike::GetOffroadResistance() const
 {
 	return m_offroad_resistance;
 }
 
-void Aircraft::UseBoost()
+void Bike::UseBoost()
 {
 	if (m_boost_ready && !m_use_boost)
 	{
@@ -466,14 +466,14 @@ void Aircraft::UseBoost()
 	}
 }
 
-void Aircraft::IncreaseSpeed(float speedUp)
+void Bike::IncreaseSpeed(float speedUp)
 {
 	m_speed = m_speed + (m_speed * speedUp);
 	if (m_speed > m_max_speed)
 		m_speed = m_max_speed;
 }
 
-void Aircraft::DecreaseSpeed(float speedDown)
+void Bike::DecreaseSpeed(float speedDown)
 {
 	m_speed = m_speed - (m_speed * speedDown);
 	m_speed = m_speed - (m_speed * m_offroad_resistance);

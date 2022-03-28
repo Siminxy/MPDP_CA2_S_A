@@ -136,7 +136,7 @@ bool MultiplayerGameState::Update(sf::Time dt)
 				found_local_plane = true;
 			}
 
-			if(!m_world.GetAircraft(itr->first))
+			if(!m_world.GetBike(itr->first))
 			{
 				itr = m_players.erase(itr);
 
@@ -227,7 +227,7 @@ bool MultiplayerGameState::Update(sf::Time dt)
 
 			for(sf::Int32 identifier : m_local_player_identifiers)
 			{
-				if(Aircraft* aircraft = m_world.GetAircraft(identifier))
+				if(Bike* aircraft = m_world.GetBike(identifier))
 				{
 					position_update_packet << identifier << aircraft->getPosition().x << aircraft->getPosition().y << static_cast<sf::Int32>(aircraft->GetHitPoints()) << static_cast<sf::Int32>(aircraft->GetMissileAmmo());
 				}
@@ -361,7 +361,7 @@ void MultiplayerGameState::HandlePacket(sf::Int32 packet_type, sf::Packet& packe
 		sf::Int32 aircraft_identifier;
 		sf::Vector2f aircraft_position;
 		packet >> aircraft_identifier >> aircraft_position.x >> aircraft_position.y;
-		Aircraft* aircraft = m_world.AddAircraft(aircraft_identifier);
+		Bike* aircraft = m_world.AddBike(aircraft_identifier);
 		aircraft->setPosition(aircraft_position);
 		m_players[aircraft_identifier].reset(new Player(&m_socket, aircraft_identifier, GetContext().keys1));
 		m_local_player_identifiers.push_back(aircraft_identifier);
@@ -375,7 +375,7 @@ void MultiplayerGameState::HandlePacket(sf::Int32 packet_type, sf::Packet& packe
 		sf::Vector2f aircraft_position;
 		packet >> aircraft_identifier >> aircraft_position.x >> aircraft_position.y;
 
-		Aircraft* aircraft = m_world.AddAircraft(aircraft_identifier);
+		Bike* aircraft = m_world.AddBike(aircraft_identifier);
 		aircraft->setPosition(aircraft_position);
 		m_players[aircraft_identifier].reset(new Player(&m_socket, aircraft_identifier, nullptr));
 	}
@@ -385,7 +385,7 @@ void MultiplayerGameState::HandlePacket(sf::Int32 packet_type, sf::Packet& packe
 	{
 		sf::Int32 aircraft_identifier;
 		packet >> aircraft_identifier;
-		m_world.RemoveAircraft(aircraft_identifier);
+		m_world.RemoveBike(aircraft_identifier);
 		m_players.erase(aircraft_identifier);
 	}
 	break;
@@ -408,7 +408,7 @@ void MultiplayerGameState::HandlePacket(sf::Int32 packet_type, sf::Packet& packe
 			sf::Vector2f aircraft_position;
 			packet >> aircraft_identifier >> aircraft_position.x >> aircraft_position.y >> hitpoints >> missile_ammo;
 
-			Aircraft* aircraft = m_world.AddAircraft(aircraft_identifier);
+			Bike* aircraft = m_world.AddBike(aircraft_identifier);
 			aircraft->setPosition(aircraft_position);
 			aircraft->SetHitpoints(hitpoints);
 			aircraft->SetMissileAmmo(missile_ammo);
@@ -423,7 +423,7 @@ void MultiplayerGameState::HandlePacket(sf::Int32 packet_type, sf::Packet& packe
 		sf::Int32 aircraft_identifier;
 		packet >> aircraft_identifier;
 
-		m_world.AddAircraft(aircraft_identifier);
+		m_world.AddBike(aircraft_identifier);
 		m_players[aircraft_identifier].reset(new Player(&m_socket, aircraft_identifier, GetContext().keys2));
 		m_local_player_identifiers.emplace_back(aircraft_identifier);
 	}
@@ -468,7 +468,7 @@ void MultiplayerGameState::HandlePacket(sf::Int32 packet_type, sf::Packet& packe
 		float relative_x;
 		packet >> type >> height >> relative_x;
 
-		m_world.AddEnemy(static_cast<AircraftType>(type), relative_x, height);
+		m_world.AddEnemy(static_cast<BikeType>(type), relative_x, height);
 		m_world.SortEnemies();
 	}
 	break;
@@ -510,7 +510,7 @@ void MultiplayerGameState::HandlePacket(sf::Int32 packet_type, sf::Packet& packe
 			sf::Int32 ammo;
 			packet >> aircraft_identifier >> aircraft_position.x >> aircraft_position.y >> hitpoints >> ammo;
 
-			Aircraft* aircraft = m_world.GetAircraft(aircraft_identifier);
+			Bike* aircraft = m_world.GetBike(aircraft_identifier);
 			bool is_local_plane = std::find(m_local_player_identifiers.begin(), m_local_player_identifiers.end(), aircraft_identifier) != m_local_player_identifiers.end();
 			if(aircraft && !is_local_plane)
 			{

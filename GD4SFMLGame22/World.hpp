@@ -3,9 +3,9 @@
 #include "ResourceIdentifiers.hpp"
 #include "SceneNode.hpp"
 #include "SpriteNode.hpp"
-#include "Aircraft.hpp"
+#include "Bike.hpp"
 #include "Layers.hpp"
-#include "AircraftType.hpp"
+#include "BikeType.hpp"
 #include "NetworkNode.hpp"
 
 #include <SFML/System/NonCopyable.hpp>
@@ -43,19 +43,19 @@ public:
 	sf::FloatRect GetViewBounds() const;
 	CommandQueue& GetCommandQueue();
 
-	Aircraft* AddAircraft(int identifier);
-	void RemoveAircraft(int identifier);
+	Bike* AddBike(int identifier);
+	void RemoveBike(int identifier);
 	void SetCurrentBattleFieldPosition(float line_y);
 	void SetWorldHeight(float height);
 
-	void AddEnemy(AircraftType type, float rel_x, float rel_y);
+	void AddEnemy(BikeType type, float rel_x, float rel_y);
 	void SortEnemies();
 
 	bool HasAlivePlayer() const;
 	bool HasPlayerReachedEnd() const;
 
 	void SetWorldScrollCompensation(float compensation);
-	Aircraft* GetAircraft(int identifier) const;
+	Bike* GetBike(int identifier) const;
 	sf::FloatRect GetBattlefieldBounds() const;
 	void CreatePickup(sf::Vector2f position, PickupType type);
 	bool PollGameAction(GameActions::Action& out);
@@ -82,11 +82,11 @@ private:
 private:
 	struct SpawnPoint
 	{
-		SpawnPoint(AircraftType type, float x, float y) : m_type(type), m_x(x), m_y(y)
+		SpawnPoint(BikeType type, float x, float y) : m_type(type), m_x(x), m_y(y)
 		{
 			
 		}
-		AircraftType m_type;
+		BikeType m_type;
 		float m_x;
 		float m_y;
 	};
@@ -118,10 +118,10 @@ private:
 	sf::Vector2f m_spawn_position;
 	float m_scrollspeed;
 	float m_scrollspeed_compensation;
-	std::vector<Aircraft*> m_player_aircraft;
+	std::vector<Bike*> m_player_aircraft;
 	std::vector<SpawnPoint> m_enemy_spawn_points;
 	std::vector<ObstacleSpawnPoint> m_obstacle_spawn_points;
-	std::vector<Aircraft*>	m_active_enemies;
+	std::vector<Bike*>	m_active_enemies;
 
 	BloomEffect m_bloom_effect;
 	bool m_networked_world;

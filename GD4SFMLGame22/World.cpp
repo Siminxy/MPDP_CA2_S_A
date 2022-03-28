@@ -50,7 +50,7 @@ void World::Update(sf::Time dt)
 	//Scroll the world
 	m_camera.move(-(m_scrollspeed * dt.asSeconds() * m_scrollspeed_compensation), 0);
 
-	for (Aircraft* a : m_player_aircraft)
+	for (Bike* a : m_player_aircraft)
 	{
 		a->SetVelocity(0.f, 0.f);
 	}
@@ -68,7 +68,7 @@ void World::Update(sf::Time dt)
 	HandleCollisions();
 	//Remove all destroyed entities
 	//RemoveWrecks() only destroys the entities, not the pointers in m_player_aircraft
-	auto first_to_remove = std::remove_if(m_player_aircraft.begin(), m_player_aircraft.end(), std::mem_fn(&Aircraft::IsMarkedForRemoval));
+	auto first_to_remove = std::remove_if(m_player_aircraft.begin(), m_player_aircraft.end(), std::mem_fn(&Bike::IsMarkedForRemoval));
 	m_player_aircraft.erase(first_to_remove, m_player_aircraft.end());
 	m_scenegraph.RemoveWrecks();
 
@@ -98,9 +98,9 @@ void World::Draw()
 	}
 }
 
-Aircraft* World::GetAircraft(int identifier) const
+Bike* World::GetBike(int identifier) const
 {
-	for(Aircraft * a : m_player_aircraft)
+	for(Bike * a : m_player_aircraft)
 	{
 		if (a->GetIdentifier() == identifier)
 		{
@@ -110,9 +110,9 @@ Aircraft* World::GetAircraft(int identifier) const
 	return nullptr;
 }
 
-void World::RemoveAircraft(int identifier)
+void World::RemoveBike(int identifier)
 {
-	Aircraft* aircraft = GetAircraft(identifier);
+	Bike* aircraft = GetBike(identifier);
 	if (aircraft)
 	{
 		aircraft->Destroy();
@@ -120,9 +120,9 @@ void World::RemoveAircraft(int identifier)
 	}
 }
 
-Aircraft* World::AddAircraft(int identifier)
+Bike* World::AddBike(int identifier)
 {
-	std::unique_ptr<Aircraft> player(new Aircraft(AircraftType::kEagle, m_textures, m_fonts));
+	std::unique_ptr<Bike> player(new Bike(BikeType::kRacer, m_textures, m_fonts));
 	player->setPosition(m_camera.getCenter());
 	player->SetIdentifier(identifier);
 
@@ -162,7 +162,7 @@ bool World::HasAlivePlayer() const
 
 bool World::HasPlayerReachedEnd() const
 {
-	if(Aircraft* aircraft = GetAircraft(1))
+	if(Bike* aircraft = GetBike(1))
 	{
 		return !m_world_bounds.contains(aircraft->getPosition());
 	}
@@ -246,7 +246,7 @@ void World::AdaptPlayerPosition()
 	sf::FloatRect view_bounds = GetViewBounds();
 	const float border_distance = 40.f;
 	const float barrier_distance = 650.0f;
-	for (Aircraft* aircraft : m_player_aircraft)
+	for (Bike* aircraft : m_player_aircraft)
 	{
 		sf::Vector2f position = aircraft->getPosition();
 		position.x = std::max(position.x, view_bounds.left + border_distance);
@@ -259,7 +259,7 @@ void World::AdaptPlayerPosition()
 
 void World::AdaptPlayerVelocity()
 {
-	for (Aircraft* aircraft : m_player_aircraft)
+	for (Bike* aircraft : m_player_aircraft)
 	{
 		sf::Vector2f velocity = aircraft->GetVelocity();
 		//if moving diagonally then reduce velocity
@@ -294,7 +294,7 @@ void World::SpawnEnemies()
 	{
 		SpawnPoint spawn = m_enemy_spawn_points.back();
 		std::cout << static_cast<int>(spawn.m_type) << std::endl;
-		std::unique_ptr<Aircraft> enemy(new Aircraft(spawn.m_type, m_textures, m_fonts));
+		std::unique_ptr<Bike> enemy(new Bike(spawn.m_type, m_textures, m_fonts));
 		enemy->setPosition(spawn.m_x, spawn.m_y);
 		enemy->setRotation(180.f);
 		//If the game is networked the server is responsible for spawning pickups
@@ -370,7 +370,7 @@ void World::AddObstacles()
 	AddObstacle(ObstacleType::kAcidSpill, 4850.f, 550.f);
 }
 
-void World::AddEnemy(AircraftType type, float relX, float relY)
+void World::AddEnemy(BikeType type, float relX, float relY)
 {
 	SpawnPoint spawn(type, m_spawn_position.x + relX, m_spawn_position.y - relY);
 	m_enemy_spawn_points.emplace_back(spawn);
@@ -383,31 +383,31 @@ void World::AddEnemies()
 		return;
 	}
 	//Add all enemies
-	AddEnemy(AircraftType::kRaptor, 0.f, 500.f);
-	AddEnemy(AircraftType::kRaptor, 0.f, 1000.f);
-	AddEnemy(AircraftType::kRaptor, +100.f, 1150.f);
-	AddEnemy(AircraftType::kRaptor, -100.f, 1150.f);
-	AddEnemy(AircraftType::kAvenger, 70.f, 1500.f);
-	AddEnemy(AircraftType::kAvenger, -70.f, 1500.f);
-	AddEnemy(AircraftType::kAvenger, -70.f, 1710.f);
-	AddEnemy(AircraftType::kAvenger, 70.f, 1700.f);
-	AddEnemy(AircraftType::kAvenger, 30.f, 1850.f);
-	AddEnemy(AircraftType::kRaptor, 300.f, 2200.f);
-	AddEnemy(AircraftType::kRaptor, -300.f, 2200.f);
-	AddEnemy(AircraftType::kRaptor, 0.f, 2200.f);
-	AddEnemy(AircraftType::kRaptor, 0.f, 2500.f);
-	AddEnemy(AircraftType::kAvenger, -300.f, 2700.f);
-	AddEnemy(AircraftType::kAvenger, -300.f, 2700.f);
-	AddEnemy(AircraftType::kRaptor, 0.f, 3000.f);
-	AddEnemy(AircraftType::kRaptor, 250.f, 3250.f);
-	AddEnemy(AircraftType::kRaptor, -250.f, 3250.f);
-	AddEnemy(AircraftType::kAvenger, 0.f, 3500.f);
-	AddEnemy(AircraftType::kAvenger, 0.f, 3700.f);
-	AddEnemy(AircraftType::kRaptor, 0.f, 3800.f);
-	AddEnemy(AircraftType::kAvenger, 0.f, 4000.f);
-	AddEnemy(AircraftType::kAvenger, -200.f, 4200.f);
-	AddEnemy(AircraftType::kRaptor, 200.f, 4200.f);
-	AddEnemy(AircraftType::kRaptor, 0.f, 4400.f);
+	AddEnemy(BikeType::kNitro, 0.f, 500.f);
+	AddEnemy(BikeType::kNitro, 0.f, 1000.f);
+	AddEnemy(BikeType::kNitro, +100.f, 1150.f);
+	AddEnemy(BikeType::kNitro, -100.f, 1150.f);
+	AddEnemy(BikeType::kOffroader, 70.f, 1500.f);
+	AddEnemy(BikeType::kOffroader, -70.f, 1500.f);
+	AddEnemy(BikeType::kOffroader, -70.f, 1710.f);
+	AddEnemy(BikeType::kOffroader, 70.f, 1700.f);
+	AddEnemy(BikeType::kOffroader, 30.f, 1850.f);
+	AddEnemy(BikeType::kNitro, 300.f, 2200.f);
+	AddEnemy(BikeType::kNitro, -300.f, 2200.f);
+	AddEnemy(BikeType::kNitro, 0.f, 2200.f);
+	AddEnemy(BikeType::kNitro, 0.f, 2500.f);
+	AddEnemy(BikeType::kOffroader, -300.f, 2700.f);
+	AddEnemy(BikeType::kOffroader, -300.f, 2700.f);
+	AddEnemy(BikeType::kNitro, 0.f, 3000.f);
+	AddEnemy(BikeType::kNitro, 250.f, 3250.f);
+	AddEnemy(BikeType::kNitro, -250.f, 3250.f);
+	AddEnemy(BikeType::kOffroader, 0.f, 3500.f);
+	AddEnemy(BikeType::kOffroader, 0.f, 3700.f);
+	AddEnemy(BikeType::kNitro, 0.f, 3800.f);
+	AddEnemy(BikeType::kOffroader, 0.f, 4000.f);
+	AddEnemy(BikeType::kOffroader, -200.f, 4200.f);
+	AddEnemy(BikeType::kNitro, 200.f, 4200.f);
+	AddEnemy(BikeType::kNitro, 0.f, 4400.f);
 
 	//Sort according to y value so that lower enemies are checked first
 	SortEnemies();
@@ -428,7 +428,7 @@ void World::GuideMissiles()
 	// Setup command that stores all enemies in mActiveEnemies
 	Command enemyCollector;
 	enemyCollector.category = Category::kEnemyAircraft;
-	enemyCollector.action = DerivedAction<Aircraft>([this](Aircraft& enemy, sf::Time)
+	enemyCollector.action = DerivedAction<Bike>([this](Bike& enemy, sf::Time)
 	{
 		if (!enemy.IsDestroyed())
 			m_active_enemies.emplace_back(&enemy);
@@ -444,10 +444,10 @@ void World::GuideMissiles()
 			return;
 
 		float minDistance = std::numeric_limits<float>::max();
-		Aircraft* closestEnemy = nullptr;
+		Bike* closestEnemy = nullptr;
 
 		// Find closest enemy
-		for(Aircraft * enemy :  m_active_enemies)
+		for(Bike * enemy :  m_active_enemies)
 		{
 			float enemyDistance = Distance(missile, *enemy);
 
@@ -493,18 +493,18 @@ void World::HandleCollisions()
 	m_scenegraph.CheckSceneCollision(m_scenegraph, collision_pairs);
 	for(SceneNode::Pair pair : collision_pairs)
 	{
-		if(MatchesCategories(pair, Category::Type::kPlayerAircraft, Category::Type::kEnemyAircraft))
+		if(MatchesCategories(pair, Category::Type::kPlayerBike, Category::Type::kEnemyAircraft))
 		{
-			auto& player = static_cast<Aircraft&>(*pair.first);
-			auto& enemy = static_cast<Aircraft&>(*pair.second);
+			auto& player = static_cast<Bike&>(*pair.first);
+			auto& enemy = static_cast<Bike&>(*pair.second);
 			//Collision
 			player.Damage(enemy.GetHitPoints());
 			enemy.Destroy();
 		}
 
-		else if (MatchesCategories(pair, Category::Type::kPlayerAircraft, Category::Type::kPickup))
+		else if (MatchesCategories(pair, Category::Type::kPlayerBike, Category::Type::kPickup))
 		{
-			auto& player = static_cast<Aircraft&>(*pair.first);
+			auto& player = static_cast<Bike&>(*pair.first);
 			auto& pickup = static_cast<Pickup&>(*pair.second);
 			//Apply the pickup effect
 			pickup.Apply(player);
@@ -512,9 +512,9 @@ void World::HandleCollisions()
 			player.PlayLocalSound(m_command_queue, SoundEffect::kCollectPickup);
 		}
 
-		else if (MatchesCategories(pair, Category::Type::kPlayerAircraft, Category::Type::kEnemyProjectile) || MatchesCategories(pair, Category::Type::kEnemyAircraft, Category::Type::kAlliedProjectile))
+		else if (MatchesCategories(pair, Category::Type::kPlayerBike, Category::Type::kEnemyProjectile) || MatchesCategories(pair, Category::Type::kEnemyAircraft, Category::Type::kAlliedProjectile))
 		{
-			auto& aircraft = static_cast<Aircraft&>(*pair.first);
+			auto& aircraft = static_cast<Bike&>(*pair.first);
 			auto& projectile = static_cast<Projectile&>(*pair.second);
 			//Apply the projectile damage to the plane
 			aircraft.Damage(projectile.GetDamage());
@@ -523,10 +523,10 @@ void World::HandleCollisions()
 
 
 		/*
-		 * if(MatchesCategories(pair, Category::Type::kPlayerAircraft, Category::kPlayerAircraft))
+		 * if(MatchesCategories(pair, Category::Type::kPlayerBike, Category::kPlayerBike))
 		{
-			auto& player1 = static_cast<Aircraft&>(*pair.first);
-			auto& player2 = static_cast<Aircraft&>(*pair.second);
+			auto& player1 = static_cast<Bike&>(*pair.first);
+			auto& player2 = static_cast<Bike&>(*pair.second);
 			//Collision
 			player1.DecreaseSpeed(50.f);
 			player2.DecreaseSpeed(50.f);
@@ -534,9 +534,9 @@ void World::HandleCollisions()
 		 */
 
 
-		//if (MatchesCategories(pair, Category::Type::kPlayerAircraft, Category::kPickup))
+		//if (MatchesCategories(pair, Category::Type::kPlayerBike, Category::kPickup))
 		//{
-		//	auto& player = static_cast<Aircraft&>(*pair.first);
+		//	auto& player = static_cast<Bike&>(*pair.first);
 		//	auto& pickup = static_cast<Pickup&>(*pair.second);
 		//	//Apply the pickup effect
 		//	pickup.Apply(player);
@@ -544,9 +544,9 @@ void World::HandleCollisions()
 		//	player.PlayLocalSound(m_command_queue, SoundEffect::kBoostGet);
 		//}
 
-		//else if (MatchesCategories(pair, Category::Type::kPlayerAircraft, Category::Type::kObstacle))
+		//else if (MatchesCategories(pair, Category::Type::kPlayerBike, Category::Type::kObstacle))
 		//{
-		//	auto& bike = static_cast<Aircraft&>(*pair.first);
+		//	auto& bike = static_cast<Bike&>(*pair.first);
 		//	auto& obstacle = static_cast<Obstacle&>(*pair.second);
 
 		//	//Apply the slowdown to the plane
@@ -587,7 +587,7 @@ void World::UpdateSounds()
 	// 1 or more players -> mean position between all aircrafts
 	else
 	{
-		for (Aircraft* aircraft : m_player_aircraft)
+		for (Bike* aircraft : m_player_aircraft)
 		{
 			listener_position += aircraft->GetWorldPosition();
 		}

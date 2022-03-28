@@ -6,9 +6,9 @@ namespace Category
 	{
 		kNone = 0,
 		kScene = 1 << 0,
-		kPlayerAircraft = 1 << 1,
-		kAlliedAircraft = 1 << 2,
-		kEnemyAircraft = 1 << 3,
+		kPlayerBike = 1 << 1,
+		kAlliedBike = 1 << 2,
+		kEnemyBike = 1 << 3,
 		kPickup = 1 << 4,
 		kAlliedProjectile = 1 << 5,
 		kEnemyProjectile = 1 << 6,
@@ -17,7 +17,7 @@ namespace Category
 		kNetwork = 1 << 9,
 		kObstacle = 1 << 10,
 
-		kAircraft = kPlayerAircraft | kAlliedAircraft | kEnemyAircraft,
+		kBike = kPlayerBike | kAlliedBike | kEnemyBike,
 		kProjectile = kAlliedProjectile | kEnemyProjectile,
 	};
 }

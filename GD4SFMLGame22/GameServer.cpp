@@ -4,7 +4,7 @@
 
 #include <SFML/Network/Packet.hpp>
 
-#include "Aircraft.hpp"
+#include "Bike.hpp"
 #include "PickupType.hpp"
 #include "Utility.hpp"
 
@@ -25,9 +25,9 @@ GameServer::GameServer(sf::Vector2f battlefield_size)
 	, m_world_height(5000.f)
 	, m_battlefield_rect(0.f, m_world_height-battlefield_size.y, battlefield_size.x, battlefield_size.y)
 	, m_battlefield_scrollspeed(-50.f)
-	, m_aircraft_count(0)
+	, m_bike_count(0)
 	, m_peers(1)
-	, m_aircraft_identifier_counter(1)
+	, m_bike_identifier_counter(1)
 	, m_waiting_thread_end(false)
 	, m_last_spawn_time(sf::Time::Zero)
 	, m_time_for_next_spawn(sf::seconds(5.f))
@@ -50,7 +50,7 @@ void GameServer::NotifyPlayerSpawn(sf::Int32 aircraft_identifier)
 	sf::Packet packet;
 	//First thing for every packet is what type of packet it is
 	packet << static_cast<sf::Int32>(Server::PacketType::PlayerConnect);
-	packet << aircraft_identifier << m_aircraft_info[aircraft_identifier].m_position.x << m_aircraft_info[aircraft_identifier].m_position.y;
+	packet << aircraft_identifier << m_bike_info[aircraft_identifier].m_position.x << m_bike_info[aircraft_identifier].m_position.y;
 	for(std::size_t i=0; i < m_connected_players; ++i)
 	{
 		if(m_peers[i]->m_ready)
@@ -166,7 +166,7 @@ void GameServer::Tick()
 
 	//Check if the game is over = all planes position.y < offset
 	bool all_aircraft_done = true;
-	for(const auto& current : m_aircraft_info)
+	for(const auto& current : m_bike_info)
 	{
 		//As long one player has not crossed the finish line game on
 		if(current.second.m_position.y > 0.f)
@@ -183,11 +183,11 @@ void GameServer::Tick()
 	}
 
 	//Remove aircraft that have been destroyed
-	for (auto itr = m_aircraft_info.begin(); itr != m_aircraft_info.end();)
+	for (auto itr = m_bike_info.begin(); itr != m_bike_info.end();)
 	{
 		if(itr->second.m_hitpoints <= 0)
 		{
-			m_aircraft_info.erase(itr++);
+			m_bike_info.erase(itr++);
 		}
 		else
 		{
@@ -221,7 +221,7 @@ void GameServer::Tick()
 			{
 				sf::Packet packet;
 				packet << static_cast<sf::Int32>(Server::PacketType::SpawnEnemy);
-				packet << static_cast<sf::Int32>(1 + Utility::RandomInt(static_cast<int>(AircraftType::kAircraftCount) - 1));
+				packet << static_cast<sf::Int32>(1 + Utility::RandomInt(static_cast<int>(BikeType::kBikeCount) - 1));
 				packet << m_world_height - m_battlefield_rect.top + 500;
 				packet << next_spawn_position;
 
@@ -309,26 +309,26 @@ void GameServer::HandleIncomingPacket(sf::Packet& packet, RemotePeer& receiving_
 
 	case Client::PacketType::RequestCoopPartner:
 	{
-		receiving_peer.m_aircraft_identifiers.emplace_back(m_aircraft_identifier_counter);
-		m_aircraft_info[m_aircraft_identifier_counter].m_position = sf::Vector2f(m_battlefield_rect.width / 2, m_battlefield_rect.top + m_battlefield_rect.height / 2);
-		m_aircraft_info[m_aircraft_identifier_counter].m_hitpoints = 100;
-		m_aircraft_info[m_aircraft_identifier_counter].m_missile_ammo = 2;
+		receiving_peer.m_bike_identifiers.emplace_back(m_bike_identifier_counter);
+		m_bike_info[m_bike_identifier_counter].m_position = sf::Vector2f(m_battlefield_rect.width / 2, m_battlefield_rect.top + m_battlefield_rect.height / 2);
+		m_bike_info[m_bike_identifier_counter].m_hitpoints = 100;
+		m_bike_info[m_bike_identifier_counter].m_missile_ammo = 2;
 
 		sf::Packet request_packet;
 		request_packet << static_cast<sf::Int32>(Server::PacketType::AcceptCoopPartner);
-		request_packet << m_aircraft_identifier_counter;
-		request_packet << m_aircraft_info[m_aircraft_identifier_counter].m_position.x;
-		request_packet << m_aircraft_info[m_aircraft_identifier_counter].m_position.y;
+		request_packet << m_bike_identifier_counter;
+		request_packet << m_bike_info[m_bike_identifier_counter].m_position.x;
+		request_packet << m_bike_info[m_bike_identifier_counter].m_position.y;
 
 		receiving_peer.m_socket.send(request_packet);
-		m_aircraft_count++;
+		m_bike_count++;
 
 		// Tell everyone else about the new plane
 		sf::Packet notify_packet;
 		notify_packet << static_cast<sf::Int32>(Server::PacketType::PlayerConnect);
-		notify_packet << m_aircraft_identifier_counter;
-		notify_packet << m_aircraft_info[m_aircraft_identifier_counter].m_position.x;
-		notify_packet << m_aircraft_info[m_aircraft_identifier_counter].m_position.y;
+		notify_packet << m_bike_identifier_counter;
+		notify_packet << m_bike_info[m_bike_identifier_counter].m_position.x;
+		notify_packet << m_bike_info[m_bike_identifier_counter].m_position.y;
 
 		for (PeerPtr& peer : m_peers)
 		{
@@ -339,7 +339,7 @@ void GameServer::HandleIncomingPacket(sf::Packet& packet, RemotePeer& receiving_
 			}
 		}
 
-		m_aircraft_identifier_counter++;
+		m_bike_identifier_counter++;
 	}
 	break;
 
@@ -355,9 +355,9 @@ void GameServer::HandleIncomingPacket(sf::Packet& packet, RemotePeer& receiving_
 			sf::Int32 missile_ammo;
 			sf::Vector2f aircraft_position;
 			packet >> aircraft_identifier >> aircraft_position.x >> aircraft_position.y >> aircraft_hitpoints >> missile_ammo;
-			m_aircraft_info[aircraft_identifier].m_position = aircraft_position;
-			m_aircraft_info[aircraft_identifier].m_hitpoints = aircraft_hitpoints;
-			m_aircraft_info[aircraft_identifier].m_missile_ammo = missile_ammo;
+			m_bike_info[aircraft_identifier].m_position = aircraft_position;
+			m_bike_info[aircraft_identifier].m_hitpoints = aircraft_hitpoints;
+			m_bike_info[aircraft_identifier].m_missile_ammo = missile_ammo;
 		}
 	}
 	break;
@@ -399,27 +399,27 @@ void GameServer::HandleIncomingConnections()
 	if(m_listener_socket.accept(m_peers[m_connected_players]->m_socket) == sf::TcpListener::Done)
 	{
 		//Order the new client to spawn its player 1
-		m_aircraft_info[m_aircraft_identifier_counter].m_position = sf::Vector2f(m_battlefield_rect.width / 2, m_battlefield_rect.top + m_battlefield_rect.height / 2);
-		m_aircraft_info[m_aircraft_identifier_counter].m_hitpoints = 100;
-		m_aircraft_info[m_aircraft_identifier_counter].m_missile_ammo = 2;
+		m_bike_info[m_bike_identifier_counter].m_position = sf::Vector2f(m_battlefield_rect.width / 2, m_battlefield_rect.top + m_battlefield_rect.height / 2);
+		m_bike_info[m_bike_identifier_counter].m_hitpoints = 100;
+		m_bike_info[m_bike_identifier_counter].m_missile_ammo = 2;
 
 		sf::Packet packet;
 		packet << static_cast<sf::Int32>(Server::PacketType::SpawnSelf);
-		packet << m_aircraft_identifier_counter;
-		packet << m_aircraft_info[m_aircraft_identifier_counter].m_position.x;
-		packet << m_aircraft_info[m_aircraft_identifier_counter].m_position.y;
+		packet << m_bike_identifier_counter;
+		packet << m_bike_info[m_bike_identifier_counter].m_position.x;
+		packet << m_bike_info[m_bike_identifier_counter].m_position.y;
 
-		m_peers[m_connected_players]->m_aircraft_identifiers.emplace_back(m_aircraft_identifier_counter);
+		m_peers[m_connected_players]->m_bike_identifiers.emplace_back(m_bike_identifier_counter);
 
 		BroadcastMessage("New player");
 		InformWorldState(m_peers[m_connected_players]->m_socket);
-		NotifyPlayerSpawn(m_aircraft_identifier_counter++);
+		NotifyPlayerSpawn(m_bike_identifier_counter++);
 
 		m_peers[m_connected_players]->m_socket.send(packet);
 		m_peers[m_connected_players]->m_ready = true;
 		m_peers[m_connected_players]->m_last_packet_time = Now();
 
-		m_aircraft_count++;
+		m_bike_count++;
 		m_connected_players++;
 
 		if(m_connected_players >= m_max_connected_players)
@@ -440,14 +440,14 @@ void GameServer::HandleDisconnections()
 		if((*itr)->m_timed_out)
 		{
 			//Inform everyone of a disconnection, erase
-			for(sf::Int32 identifer : (*itr)->m_aircraft_identifiers)
+			for(sf::Int32 identifer : (*itr)->m_bike_identifiers)
 			{
 				SendToAll((sf::Packet() << static_cast<sf::Int32>(Server::PacketType::PlayerDisconnect) << identifer));
-				m_aircraft_info.erase(identifer);
+				m_bike_info.erase(identifer);
 			}
 
 			m_connected_players--;
-			m_aircraft_count -= (*itr)->m_aircraft_identifiers.size();
+			m_bike_count -= (*itr)->m_bike_identifiers.size();
 
 			itr = m_peers.erase(itr);
 
@@ -475,15 +475,15 @@ void GameServer::InformWorldState(sf::TcpSocket& socket)
 	sf::Packet packet;
 	packet << static_cast<sf::Int32>(Server::PacketType::InitialState);
 	packet << m_world_height << m_battlefield_rect.top + m_battlefield_rect.height;
-	packet << static_cast<sf::Int32>(m_aircraft_count);
+	packet << static_cast<sf::Int32>(m_bike_count);
 
 	for(std::size_t i=0; i < m_connected_players; ++i)
 	{
 		if(m_peers[i]->m_ready)
 		{
-			for(sf::Int32 identifier : m_peers[i]->m_aircraft_identifiers)
+			for(sf::Int32 identifier : m_peers[i]->m_bike_identifiers)
 			{
-				packet << identifier << m_aircraft_info[identifier].m_position.x << m_aircraft_info[identifier].m_position.y << m_aircraft_info[identifier].m_hitpoints << m_aircraft_info[identifier].m_missile_ammo;
+				packet << identifier << m_bike_info[identifier].m_position.x << m_bike_info[identifier].m_position.y << m_bike_info[identifier].m_hitpoints << m_bike_info[identifier].m_missile_ammo;
 			}
 		}
 	}
@@ -521,9 +521,9 @@ void GameServer::UpdateClientState()
 	sf::Packet update_client_state_packet;
 	update_client_state_packet << static_cast<sf::Int32>(Server::PacketType::UpdateClientState);
 	update_client_state_packet << static_cast<float>(m_battlefield_rect.top + m_battlefield_rect.height);
-	update_client_state_packet << static_cast<sf::Int32>(m_aircraft_count);
+	update_client_state_packet << static_cast<sf::Int32>(m_bike_count);
 
-	for(const auto& aircraft : m_aircraft_info)
+	for(const auto& aircraft : m_bike_info)
 	{
 		update_client_state_packet << aircraft.first << aircraft.second.m_position.x << aircraft.second.m_position.y << aircraft.second.m_hitpoints << aircraft.second.m_missile_ammo;
 	}

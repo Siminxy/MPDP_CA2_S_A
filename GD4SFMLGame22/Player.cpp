@@ -1,77 +1,77 @@
 #include "Player.hpp"
-#include "Aircraft.hpp"
+#include "Bike.hpp"
 #include "NetworkProtocol.hpp"
 #include <SFML/Network/Packet.hpp>
 #include <algorithm>
 #include <iostream>
 
-struct AircraftMover
+struct BikeMover
 {
-	AircraftMover(float vx, float vy, int identifier)
+	BikeMover(float vx, float vy, int identifier)
 	: velocity(vx, vy)
-	, aircraft_id(identifier)
+	, bike_id(identifier)
 	{
 		
 	}
 
-	void operator()(Aircraft& aircraft, sf::Time) const
+	void operator()(Bike& aircraft, sf::Time) const
 	{
-		if (aircraft.GetIdentifier() == aircraft_id)
+		if (aircraft.GetIdentifier() == bike_id)
 		{
 			aircraft.Accelerate(velocity * aircraft.GetMaxSpeed());
 		}
 	}
 
 	sf::Vector2f velocity;
-	int aircraft_id;
+	int bike_id;
 };
 
-struct AircraftFireTrigger
+struct BikeFireTrigger
 {
-	AircraftFireTrigger(int identifier)
-		: aircraft_id(identifier)
+	BikeFireTrigger(int identifier)
+		: bike_id(identifier)
 	{
 	}
 
-	void operator() (Aircraft& aircraft, sf::Time) const
+	void operator() (Bike& aircraft, sf::Time) const
 	{
-		if (aircraft.GetIdentifier() == aircraft_id)
+		if (aircraft.GetIdentifier() == bike_id)
 			aircraft.Fire();
 	}
 
-	int aircraft_id;
+	int bike_id;
 };
 
-struct AircrafBoostTrigger
+struct BikeBoostTrigger
 {
-	AircrafBoostTrigger(int identifier)
-		: aircraft_id(identifier)
+	BikeBoostTrigger(int identifier)
+		: bike_id(identifier)
 	{
 	}
 
-	void operator() (Aircraft& aircraft, sf::Time) const
+	void operator() (Bike& aircraft, sf::Time) const
 	{
-		if (aircraft.GetIdentifier() == aircraft_id)
+		if (aircraft.GetIdentifier() == bike_id)
 			aircraft.UseBoost();
 	}
 
-	int aircraft_id;
+	int bike_id;
 };
 
-struct AircraftMissileTrigger
+struct BikeMissileTrigger
 {
-	AircraftMissileTrigger(int identifier)
-		: aircraft_id(identifier)
+	BikeMissileTrigger(int identifier)
+		: bike_id(identifier)
 	{
 	}
 
-	void operator() (Aircraft& aircraft, sf::Time) const
+	void operator() (Bike& aircraft, sf::Time) const
 	{
-		if (aircraft.GetIdentifier() == aircraft_id)
+		if (aircraft.GetIdentifier() == bike_id)
 			aircraft.LaunchMissile();
 	}
 
-	int aircraft_id;
+	int bike_id;
 };
 
 
@@ -87,7 +87,7 @@ Player::Player(sf::TcpSocket* socket, sf::Int32 identifier, const KeyBinding* bi
 
 	// Assign all categories to player's aircraft
 	for(auto & pair : m_action_binding)
-		pair.second.category = Category::kPlayerAircraft;
+		pair.second.category = Category::kPlayerBike;
 }
 
 
@@ -202,13 +202,13 @@ MissionStatus Player::GetMissionStatus() const
 
 void Player::InitialiseActions()
 {
-	m_action_binding[PlayerAction::kMoveLeft].action = DerivedAction<Aircraft>(AircraftMover(-1, 0, m_identifier));
-	m_action_binding[PlayerAction::kMoveRight].action = DerivedAction<Aircraft>(AircraftMover(+1, 0, m_identifier));
-	m_action_binding[PlayerAction::kMoveUp].action = DerivedAction<Aircraft>(AircraftMover(0, -1, m_identifier));
-	m_action_binding[PlayerAction::kMoveDown].action = DerivedAction<Aircraft>(AircraftMover(0, +1, m_identifier));
-	m_action_binding[PlayerAction::kFire].action = DerivedAction<Aircraft>(AircraftFireTrigger(m_identifier));
-	//m_action_binding[PlayerAction::kBoost].action = DerivedAction<Aircraft>(AircrafBoostTrigger(m_identifier));
-	m_action_binding[PlayerAction::kLaunchMissile].action = DerivedAction<Aircraft>(AircraftMissileTrigger(m_identifier));
+	m_action_binding[PlayerAction::kMoveLeft].action = DerivedAction<Bike>(BikeMover(-1, 0, m_identifier));
+	m_action_binding[PlayerAction::kMoveRight].action = DerivedAction<Bike>(BikeMover(+1, 0, m_identifier));
+	m_action_binding[PlayerAction::kMoveUp].action = DerivedAction<Bike>(BikeMover(0, -1, m_identifier));
+	m_action_binding[PlayerAction::kMoveDown].action = DerivedAction<Bike>(BikeMover(0, +1, m_identifier));
+	m_action_binding[PlayerAction::kFire].action = DerivedAction<Bike>(BikeFireTrigger(m_identifier));
+	//m_action_binding[PlayerAction::kBoost].action = DerivedAction<Bike>(BikeBoostTrigger(m_identifier));
+	m_action_binding[PlayerAction::kLaunchMissile].action = DerivedAction<Bike>(BikeMissileTrigger(m_identifier));
 }
 
 

@@ -29,7 +29,7 @@ sf::FloatRect Pickup::GetBoundingRect() const
 	return GetWorldTransform().transformRect(m_sprite.getGlobalBounds());
 }
 
-void Pickup::Apply(Aircraft& player) const
+void Pickup::Apply(Bike& player) const
 {
 	Table[static_cast<int>(m_type)].m_action(player);
 }

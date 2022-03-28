@@ -1,6 +1,6 @@
 #pragma once
 #include "Entity.hpp"
-#include "AircraftType.hpp"
+#include "BikeType.hpp"
 #include "ResourceIdentifiers.hpp"
 
 #include <SFML/Graphics/Sprite.hpp>
@@ -11,10 +11,10 @@
 #include "TextNode.hpp"
 
 
-class Aircraft : public Entity
+class Bike : public Entity
 {
 public:
-	Aircraft(AircraftType type, const TextureHolder& textures, const FontHolder& fonts);
+	Bike(BikeType type, const TextureHolder& textures, const FontHolder& fonts);
 	unsigned int GetCategory() const override;
 
 	void DisablePickups();
@@ -59,7 +59,7 @@ private:
 	void UpdateSpeed();
 
 private:
-	AircraftType m_type;
+	BikeType m_type;
 	sf::Sprite m_sprite;
 	Animation m_explosion;
 
