@@ -14,7 +14,7 @@ std::vector<AircraftData> InitializeAircraftData()
 	data[static_cast<int>(AircraftType::kEagle)].m_speed = 200.f;
 	data[static_cast<int>(AircraftType::kEagle)].m_max_speed = 250.f;
 	data[static_cast<int>(AircraftType::kEagle)].m_fire_interval = sf::seconds(1);
-	data[static_cast<int>(AircraftType::kEagle)].m_texture = Textures::kSpriteSheet;
+	data[static_cast<int>(AircraftType::kEagle)].m_texture = Textures::kBikeSpriteSheet;
 	data[static_cast<int>(AircraftType::kEagle)].m_texture_rect = sf::IntRect(58, 0, 57, 29);
 	data[static_cast<int>(AircraftType::kEagle)].m_has_roll_animation = true;
 	data[static_cast<int>(AircraftType::kEagle)].m_offroad_resistance = 0.2f;

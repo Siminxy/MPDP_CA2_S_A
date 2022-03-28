@@ -387,7 +387,7 @@ void Aircraft::UpdateRollAnimation()
 		sf::IntRect textureRect = Table[static_cast<int>(m_type)].m_texture_rect;
 
 		if (m_identifier > 1)
-			textureRect.top = (30 * m_identifier) % (4 * 30);
+			textureRect.top = (30 * m_identifier) % 240;
 
 		//textureRect.top += 30;
 		// Roll left: Texture rect offset to the left

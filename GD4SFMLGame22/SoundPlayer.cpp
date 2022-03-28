@@ -24,13 +24,11 @@ SoundPlayer::SoundPlayer()
 	m_sound_buffers.Load(SoundEffect::kExplosion2, "Media/Sound/Explosion2.wav");
 	m_sound_buffers.Load(SoundEffect::kLaunchMissile, "Media/Sound/LaunchMissile.wav");
 	m_sound_buffers.Load(SoundEffect::kCollectPickup, "Media/Sound/CollectPickup.wav");
-	m_sound_buffers.Load(SoundEffect::kButton, "Media/Sound/Button.wav");
-
-	//Unable to find these files even though they are in the folder
-	//m_sound_buffers.Load(SoundEffect::kBoostGet, "Media/Sound/BoostGet.wav");
-	//m_sound_buffers.Load(SoundEffect::kPlayerDead, "Media/Sound/PlayerDead.wav");
-	//m_sound_buffers.Load(SoundEffect::kUseBoost, "Media/Sound/UseBoost.wav");
-	//m_sound_buffers.Load(SoundEffect::kCollision, "Media/Sound/Collision.wav");
+	m_sound_buffers.Load(SoundEffect::kButton, "Media/Sound/ButtonClick.wav");
+	m_sound_buffers.Load(SoundEffect::kBoostGet, "Media/Sound/BoostGet.wav");
+	m_sound_buffers.Load(SoundEffect::kPlayerDead, "Media/Sound/PlayerDead.wav");
+	m_sound_buffers.Load(SoundEffect::kUseBoost, "Media/Sound/UseBoost.wav");
+	m_sound_buffers.Load(SoundEffect::kCollision, "Media/Sound/Collision.wav");
 
 	// Listener points towards the screen (default in SFML)
 	sf::Listener::setDirection(0.f, 0.f, -1.f);

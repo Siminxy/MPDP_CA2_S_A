@@ -8,5 +8,6 @@ enum class Textures
 	kExplosion,
 	kParticle,
 	kFinishLine,
-	kSpriteSheet
+	kSpriteSheet,
+	kBikeSpriteSheet
 };
