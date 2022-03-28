@@ -460,16 +460,16 @@ void MultiplayerGameState::HandlePacket(sf::Int32 packet_type, sf::Packet& packe
 	}
 	break;
 
-	//New Enemy to be created
-	case Server::PacketType::SpawnEnemy:
+	//New Obstacle to be created
+	case Server::PacketType::SpawnObstacle:
 	{
 		float height;
 		sf::Int32 type;
 		float relative_x;
 		packet >> type >> height >> relative_x;
 
-		m_world.AddEnemy(static_cast<BikeType>(type), relative_x, height);
-		m_world.SortEnemies();
+		m_world.AddObstacle(static_cast<ObstacleType>(type), relative_x, height);
+		m_world.SortObstacles();
 	}
 	break;
 

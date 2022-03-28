@@ -7,8 +7,6 @@
 #include "CommandQueue.hpp"
 #include "ObstacleType.hpp"
 #include "TextNode.hpp"
-#include "Obstacle.h"
-
 
 class Obstacle : public Entity
 {

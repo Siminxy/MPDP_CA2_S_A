@@ -48,8 +48,8 @@ public:
 	void SetCurrentBattleFieldPosition(float line_y);
 	void SetWorldHeight(float height);
 
-	void AddEnemy(BikeType type, float rel_x, float rel_y);
-	void SortEnemies();
+	void AddObstacle(ObstacleType type, float relX, float relY);
+	void SortObstacles();
 
 	bool HasAlivePlayer() const;
 	bool HasPlayerReachedEnd() const;
@@ -67,16 +67,12 @@ private:
 	void AdaptPlayerPosition();
 	void AdaptPlayerVelocity();
 
-	
-	void SpawnEnemies();
-	void AddEnemies();
 	void GuideMissiles();
 	void HandleCollisions();
 	void DestroyEntitiesOutsideView();
 	void UpdateSounds();
 
 	void SpawnObstacles();
-	void AddObstacle(ObstacleType type, float relX, float relY);
 	void AddObstacles();
 
 private:
@@ -118,7 +114,7 @@ private:
 	sf::Vector2f m_spawn_position;
 	float m_scrollspeed;
 	float m_scrollspeed_compensation;
-	std::vector<Bike*> m_player_aircraft;
+	std::vector<Bike*> m_player_bike;
 	std::vector<SpawnPoint> m_enemy_spawn_points;
 	std::vector<ObstacleSpawnPoint> m_obstacle_spawn_points;
 	std::vector<Bike*>	m_active_enemies;

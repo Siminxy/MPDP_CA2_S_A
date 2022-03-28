@@ -217,7 +217,7 @@
     <ClInclude Include="MusicThemes.hpp" />
     <ClInclude Include="NetworkNode.hpp" />
     <ClInclude Include="NetworkProtocol.hpp" />
-    <ClInclude Include="Obstacle.h" />
+    <ClInclude Include="Obstacle.hpp" />
     <ClInclude Include="ObstacleType.hpp" />
     <ClInclude Include="Particle.hpp" />
     <ClInclude Include="ParticleNode.hpp" />

@@ -25,6 +25,7 @@ Bike::Bike(BikeType type, const TextureHolder& textures, const FontHolder& fonts
 : Entity(Table[static_cast<int>(type)].m_hitpoints)
 , m_type(type)
 , m_sprite(textures.Get(Table[static_cast<int>(type)].m_texture), Table[static_cast<int>(type)].m_texture_rect)
+, m_max_speed(Table[static_cast<int>(type)].m_max_speed)
 , m_explosion(textures.Get(Textures::kExplosion))
 , m_is_firing(false)
 , m_boost_ready(true)
@@ -111,7 +112,7 @@ unsigned int Bike::GetCategory() const
 	{
 		return static_cast<int>(Category::kPlayerBike);
 	}
-	return static_cast<int>(Category::kEnemyAircraft);
+	return static_cast<int>(Category::kEnemyBike);
 }
 
 void Bike::IncreaseFireRate()

@@ -308,7 +308,7 @@
     <ClInclude Include="KeyBinding.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Obstacle.h">
+    <ClInclude Include="Obstacle.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ObstacleType.hpp">

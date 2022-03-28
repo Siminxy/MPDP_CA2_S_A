@@ -220,7 +220,7 @@ void GameServer::Tick()
 			for (std::size_t i = 0; i < enemy_count; ++i)
 			{
 				sf::Packet packet;
-				packet << static_cast<sf::Int32>(Server::PacketType::SpawnEnemy);
+				packet << static_cast<sf::Int32>(Server::PacketType::SpawnObstacle);
 				packet << static_cast<sf::Int32>(1 + Utility::RandomInt(static_cast<int>(BikeType::kBikeCount) - 1));
 				packet << m_world_height - m_battlefield_rect.top + 500;
 				packet << next_spawn_position;

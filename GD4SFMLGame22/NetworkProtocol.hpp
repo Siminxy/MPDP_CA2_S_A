@@ -15,7 +15,6 @@ namespace Server
 		PlayerConnect,
 		PlayerDisconnect,
 		AcceptCoopPartner,
-		SpawnEnemy,
 		SpawnPickup,
 		SpawnObstacle,
 		SpawnSelf,

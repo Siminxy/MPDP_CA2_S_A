@@ -14,11 +14,11 @@ struct BikeMover
 		
 	}
 
-	void operator()(Bike& aircraft, sf::Time) const
+	void operator()(Bike& bike, sf::Time) const
 	{
-		if (aircraft.GetIdentifier() == bike_id)
+		if (bike.GetIdentifier() == bike_id)
 		{
-			aircraft.Accelerate(velocity * aircraft.GetMaxSpeed());
+			bike.Accelerate(velocity * bike.GetSpeed());
 		}
 	}
 
@@ -33,10 +33,10 @@ struct BikeFireTrigger
 	{
 	}
 
-	void operator() (Bike& aircraft, sf::Time) const
+	void operator() (Bike& bike, sf::Time) const
 	{
-		if (aircraft.GetIdentifier() == bike_id)
-			aircraft.Fire();
+		if (bike.GetIdentifier() == bike_id)
+			bike.Fire();
 	}
 
 	int bike_id;
@@ -49,10 +49,10 @@ struct BikeBoostTrigger
 	{
 	}
 
-	void operator() (Bike& aircraft, sf::Time) const
+	void operator() (Bike& bike, sf::Time) const
 	{
-		if (aircraft.GetIdentifier() == bike_id)
-			aircraft.UseBoost();
+		if (bike.GetIdentifier() == bike_id)
+			bike.UseBoost();
 	}
 
 	int bike_id;
@@ -65,10 +65,10 @@ struct BikeMissileTrigger
 	{
 	}
 
-	void operator() (Bike& aircraft, sf::Time) const
+	void operator() (Bike& bike, sf::Time) const
 	{
-		if (aircraft.GetIdentifier() == bike_id)
-			aircraft.LaunchMissile();
+		if (bike.GetIdentifier() == bike_id)
+			bike.LaunchMissile();
 	}
 
 	int bike_id;
@@ -207,7 +207,7 @@ void Player::InitialiseActions()
 	m_action_binding[PlayerAction::kMoveUp].action = DerivedAction<Bike>(BikeMover(0, -1, m_identifier));
 	m_action_binding[PlayerAction::kMoveDown].action = DerivedAction<Bike>(BikeMover(0, +1, m_identifier));
 	m_action_binding[PlayerAction::kFire].action = DerivedAction<Bike>(BikeFireTrigger(m_identifier));
-	//m_action_binding[PlayerAction::kBoost].action = DerivedAction<Bike>(BikeBoostTrigger(m_identifier));
+	m_action_binding[PlayerAction::kBoost].action = DerivedAction<Bike>(BikeBoostTrigger(m_identifier));
 	m_action_binding[PlayerAction::kLaunchMissile].action = DerivedAction<Bike>(BikeMissileTrigger(m_identifier));
 }
 
