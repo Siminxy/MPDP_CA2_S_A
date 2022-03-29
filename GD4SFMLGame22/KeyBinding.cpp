@@ -13,8 +13,8 @@ KeyBinding::KeyBinding(int control_preconfiguration)
 		m_key_map[sf::Keyboard::Right] = PlayerAction::kMoveRight;
 		m_key_map[sf::Keyboard::Up] = PlayerAction::kMoveUp;
 		m_key_map[sf::Keyboard::Down] = PlayerAction::kMoveDown;
-		m_key_map[sf::Keyboard::Space] = PlayerAction::kFire;
-		m_key_map[sf::Keyboard::M] = PlayerAction::kLaunchMissile;
+		m_key_map[sf::Keyboard::LShift] = PlayerAction::kBoost;
+		//m_key_map[sf::Keyboard::M] = PlayerAction::kLaunchMissile;
 	}
 	else if (control_preconfiguration == 2)
 	{
@@ -23,8 +23,8 @@ KeyBinding::KeyBinding(int control_preconfiguration)
 		m_key_map[sf::Keyboard::D] = PlayerAction::kMoveRight;
 		m_key_map[sf::Keyboard::W] = PlayerAction::kMoveUp;
 		m_key_map[sf::Keyboard::S] = PlayerAction::kMoveDown;
-		m_key_map[sf::Keyboard::F] = PlayerAction::kFire;
-		m_key_map[sf::Keyboard::R] = PlayerAction::kLaunchMissile;
+		m_key_map[sf::Keyboard::RShift] = PlayerAction::kBoost;
+		//m_key_map[sf::Keyboard::R] = PlayerAction::kLaunchMissile;
 	}
 }
 
@@ -91,7 +91,7 @@ bool IsRealtimeAction(PlayerAction action)
 	case PlayerAction::kMoveRight:
 	case PlayerAction::kMoveDown:
 	case PlayerAction::kMoveUp:
-	case PlayerAction::kFire:
+	case PlayerAction::kBoost:
 		return true;
 
 	default:

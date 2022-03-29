@@ -26,22 +26,6 @@ struct BikeMover
 	int bike_id;
 };
 
-struct BikeFireTrigger
-{
-	BikeFireTrigger(int identifier)
-		: bike_id(identifier)
-	{
-	}
-
-	void operator() (Bike& bike, sf::Time) const
-	{
-		if (bike.GetIdentifier() == bike_id)
-			bike.Fire();
-	}
-
-	int bike_id;
-};
-
 struct BikeBoostTrigger
 {
 	BikeBoostTrigger(int identifier)
@@ -57,24 +41,6 @@ struct BikeBoostTrigger
 
 	int bike_id;
 };
-
-struct BikeMissileTrigger
-{
-	BikeMissileTrigger(int identifier)
-		: bike_id(identifier)
-	{
-	}
-
-	void operator() (Bike& bike, sf::Time) const
-	{
-		if (bike.GetIdentifier() == bike_id)
-			bike.LaunchMissile();
-	}
-
-	int bike_id;
-};
-
-
 
 Player::Player(sf::TcpSocket* socket, sf::Int32 identifier, const KeyBinding* binding)
 	: m_key_binding(binding)
@@ -206,9 +172,7 @@ void Player::InitialiseActions()
 	m_action_binding[PlayerAction::kMoveRight].action = DerivedAction<Bike>(BikeMover(+1, 0, m_identifier));
 	m_action_binding[PlayerAction::kMoveUp].action = DerivedAction<Bike>(BikeMover(0, -1, m_identifier));
 	m_action_binding[PlayerAction::kMoveDown].action = DerivedAction<Bike>(BikeMover(0, +1, m_identifier));
-	m_action_binding[PlayerAction::kFire].action = DerivedAction<Bike>(BikeFireTrigger(m_identifier));
 	m_action_binding[PlayerAction::kBoost].action = DerivedAction<Bike>(BikeBoostTrigger(m_identifier));
-	m_action_binding[PlayerAction::kLaunchMissile].action = DerivedAction<Bike>(BikeMissileTrigger(m_identifier));
 }
 
 

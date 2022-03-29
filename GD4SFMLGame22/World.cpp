@@ -56,7 +56,7 @@ void World::Update(sf::Time dt)
 	}
 
 	DestroyEntitiesOutsideView();
-	GuideMissiles();
+	//GuideMissiles();
 
 	//Forward commands to the scenegraph until the command queue is empty
 	while(!m_command_queue.IsEmpty())
@@ -277,14 +277,16 @@ sf::FloatRect World::GetViewBounds() const
 
 sf::FloatRect World::GetBattlefieldBounds() const
 {
-	//Return camera bounds + a small area at the top where enemies spawn offscreen
+	//Return camera bounds + a extension to width where obstacles spawn offscreen
 	sf::FloatRect bounds = GetViewBounds();
-	bounds.top -= 100.f;
-	bounds.height += 100.f;
+	bounds.width = m_camera.getSize().x + 100.f;
 
 	return bounds;
 }
 
+//Cannot figure out how to make it spawn obstacles, can only get first 5 to spawn
+//Have also switched to m_obstacle_spawn_points.back().m_x > GetBattlefieldBounds().width and had a counter but
+//Nothing worked
 void World::SpawnObstacles()
 {
 	//Spawn an obstacle when they are relevant - they are relevant when they enter the battlefield bounds
@@ -352,51 +354,51 @@ void World::SortObstacles()
 	});
 }
 
-
-void World::GuideMissiles()
-{
-	// Setup command that stores all enemies in mActiveEnemies
-	Command enemyCollector;
-	enemyCollector.category = Category::kEnemyBike;
-	enemyCollector.action = DerivedAction<Bike>([this](Bike& enemy, sf::Time)
-	{
-		if (!enemy.IsDestroyed())
-			m_active_enemies.emplace_back(&enemy);
-	});
-
-	// Setup command that guides all missiles to the enemy which is currently closest to the player
-	Command missileGuider;
-	missileGuider.category = Category::kAlliedProjectile;
-	missileGuider.action = DerivedAction<Projectile>([this](Projectile& missile, sf::Time)
-	{
-		// Ignore unguided bullets
-		if (!missile.IsGuided())
-			return;
-
-		float minDistance = std::numeric_limits<float>::max();
-		Bike* closestEnemy = nullptr;
-
-		// Find closest enemy
-		for(Bike * enemy :  m_active_enemies)
-		{
-			float enemyDistance = Distance(missile, *enemy);
-
-			if (enemyDistance < minDistance)
-			{
-				closestEnemy = enemy;
-				minDistance = enemyDistance;
-			}
-		}
-
-		if (closestEnemy)
-			missile.GuideTowards(closestEnemy->GetWorldPosition());
-	});
-
-	// Push commands, reset active enemies
-	m_command_queue.Push(enemyCollector);
-	m_command_queue.Push(missileGuider);
-	m_active_enemies.clear();
-}
+//
+//void World::GuideMissiles()
+//{
+//	// Setup command that stores all enemies in mActiveEnemies
+//	Command enemyCollector;
+//	enemyCollector.category = Category::kEnemyBike;
+//	enemyCollector.action = DerivedAction<Bike>([this](Bike& enemy, sf::Time)
+//	{
+//		if (!enemy.IsDestroyed())
+//			m_active_enemies.emplace_back(&enemy);
+//	});
+//
+//	// Setup command that guides all missiles to the enemy which is currently closest to the player
+//	Command missileGuider;
+//	missileGuider.category = Category::kAlliedProjectile;
+//	missileGuider.action = DerivedAction<Projectile>([this](Projectile& missile, sf::Time)
+//	{
+//		// Ignore unguided bullets
+//		if (!missile.IsGuided())
+//			return;
+//
+//		float minDistance = std::numeric_limits<float>::max();
+//		Bike* closestEnemy = nullptr;
+//
+//		// Find closest enemy
+//		for(Bike * enemy :  m_active_enemies)
+//		{
+//			float enemyDistance = Distance(missile, *enemy);
+//
+//			if (enemyDistance < minDistance)
+//			{
+//				closestEnemy = enemy;
+//				minDistance = enemyDistance;
+//			}
+//		}
+//
+//		if (closestEnemy)
+//			missile.GuideTowards(closestEnemy->GetWorldPosition());
+//	});
+//
+//	// Push commands, reset active enemies
+//	m_command_queue.Push(enemyCollector);
+//	m_command_queue.Push(missileGuider);
+//	m_active_enemies.clear();
+//}
 
 bool MatchesCategories(SceneNode::Pair& colliders, Category::Type type1, Category::Type type2)
 {

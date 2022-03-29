@@ -27,22 +27,16 @@ Bike::Bike(BikeType type, const TextureHolder& textures, const FontHolder& fonts
 , m_sprite(textures.Get(Table[static_cast<int>(type)].m_texture), Table[static_cast<int>(type)].m_texture_rect)
 , m_max_speed(Table[static_cast<int>(type)].m_max_speed)
 , m_explosion(textures.Get(Textures::kExplosion))
-, m_is_firing(false)
 , m_boost_ready(true)
-, m_is_launching_missile(false)
-, m_fire_countdown(sf::Time::Zero)
+//, m_fire_countdown(sf::Time::Zero)
 , m_is_marked_for_removal(false)
 , m_show_explosion(true)
 , m_explosion_began(false)
 , m_spawned_pickup(false)
 , m_pickups_enabled(true)
-, m_fire_rate(1)
-, m_spread_level(1)
-, m_missile_ammo(2)
 , m_health_display(nullptr)
 , m_boost_display(nullptr)
 , m_player_display(nullptr)
-, m_missile_display(nullptr)
 , m_travelled_distance(0.f)
 , m_directions_index(0)
 , m_identifier(0)
@@ -78,16 +72,6 @@ Bike::Bike(BikeType type, const TextureHolder& textures, const FontHolder& fonts
 
 }
 
-int Bike::GetMissileAmmo() const
-{
-	return m_missile_ammo;
-}
-
-void Bike::SetMissileAmmo(int ammo)
-{
-	m_missile_ammo = ammo;
-}
-
 void Bike::DrawCurrent(sf::RenderTarget& target, sf::RenderStates states) const
 {
 	if(IsDestroyed() && m_show_explosion)
@@ -115,25 +99,14 @@ unsigned int Bike::GetCategory() const
 	return static_cast<int>(Category::kEnemyBike);
 }
 
-void Bike::IncreaseFireRate()
+bool Bike::GetInvincibility()
 {
-	if(m_fire_rate < 10)
-	{
-		++m_fire_rate;
-	}
+	return m_invincibility;
 }
 
-void Bike::IncreaseSpread()
+bool Bike::GetBoost()
 {
-	if(m_spread_level < 3)
-	{
-		++m_spread_level;
-	}
-}
-
-void Bike::CollectMissiles(unsigned int count)
-{
-	m_missile_ammo += count;
+	return m_boost_ready;
 }
 
 void Bike::UpdateTexts()
@@ -199,8 +172,7 @@ void Bike::UpdateCurrent(sf::Time dt, CommandQueue& commands)
 		}
 		return;
 	}
-	//Check if bullets or missiles are fired
-	CheckProjectileLaunch(dt, commands);
+
 	// Update enemy movement pattern; apply velocity
 	UpdateMovementPattern(dt);
 	Entity::UpdateCurrent(dt, commands);
@@ -236,10 +208,7 @@ void Bike::UpdateMovementPattern(sf::Time dt)
 
 		SetVelocity(vx, vy);
 		m_travelled_distance += GetMaxSpeed() * dt.asSeconds();
-
 	}
-
-
 }
 
 float Bike::GetMaxSpeed() const
@@ -247,102 +216,42 @@ float Bike::GetMaxSpeed() const
 	return Table[static_cast<int>(m_type)].m_max_speed;
 }
 
-void Bike::Fire()
-{
-	//Only ships with a non-zero fire interval fire
-	if(Table[static_cast<int>(m_type)].m_fire_interval != sf::Time::Zero)
-	{
-		m_is_firing = true;
-	}
-}
-
-void Bike::LaunchMissile()
-{
-	if(m_missile_ammo > 0)
-	{
-		m_is_launching_missile = true;
-		--m_missile_ammo;
-	}
-}
-
-void Bike::CheckProjectileLaunch(sf::Time dt, CommandQueue& commands)
-{
-	//Enemies try and fire as often as possible
-	if(!IsAllied())
-	{
-		Fire();
-	}
-
-	//Rate the bullets - default to 2 times a second
-	if(m_is_firing && m_fire_countdown <= sf::Time::Zero)
-	{
-		PlayLocalSound(commands, IsAllied() ? SoundEffect::kAlliedGunfire : SoundEffect::kEnemyGunfire);
-		commands.Push(m_fire_command);
-		m_fire_countdown += Table[static_cast<int>(m_type)].m_fire_interval / (m_fire_rate + 1.f);
-		m_is_firing = false;
-	}
-	else if(m_fire_countdown > sf::Time::Zero)
-	{
-		//Wait, can't fire yet
-		m_fire_countdown -= dt;
-		m_is_firing = false;
-	}
-	//Missile launch
-	if(m_is_launching_missile)
-	{
-		PlayLocalSound(commands, SoundEffect::kLaunchMissile);
-		commands.Push(m_missile_command);
-		m_is_launching_missile = false;
-	}
-
-}
-
-void Bike::CollectBoost()
-{
-	m_boost_ready = true;
-}
-
+//
+//void Bike::CheckProjectileLaunch(sf::Time dt, CommandQueue& commands)
+//{
+//	//Enemies try and fire as often as possible
+//	if(!IsAllied())
+//	{
+//		Fire();
+//	}
+//
+//	//Rate the bullets - default to 2 times a second
+//	if(m_is_firing && m_fire_countdown <= sf::Time::Zero)
+//	{
+//		PlayLocalSound(commands, IsAllied() ? SoundEffect::kAlliedGunfire : SoundEffect::kEnemyGunfire);
+//		commands.Push(m_fire_command);
+//		m_fire_countdown += Table[static_cast<int>(m_type)].m_fire_interval / (m_fire_rate + 1.f);
+//		m_is_firing = false;
+//	}
+//	else if(m_fire_countdown > sf::Time::Zero)
+//	{
+//		//Wait, can't fire yet
+//		m_fire_countdown -= dt;
+//		m_is_firing = false;
+//	}
+//	//Missile launch
+//	if(m_is_launching_missile)
+//	{
+//		PlayLocalSound(commands, SoundEffect::kLaunchMissile);
+//		commands.Push(m_missile_command);
+//		m_is_launching_missile = false;
+//	}
+//
+//}
 
 bool Bike::IsAllied() const
 {
 	return m_type == BikeType::kRacer;
-}
-
-
-//TODO Do enemies need a different offset as they are flying down the screen?
-void Bike::CreateBullets(SceneNode& node, const TextureHolder& textures) const
-{
-	ProjectileType type = IsAllied() ? ProjectileType::kAlliedBullet : ProjectileType::kEnemyBullet;
-	switch(m_spread_level)
-	{
-		case 1:
-			CreateProjectile(node, type, 0.0f, 0.5f, textures);
-			break;
-		case 2:
-			CreateProjectile(node, type, -0.5f, 0.5f, textures);
-			CreateProjectile(node, type, 0.5f, 0.5f, textures);
-			break;
-		case 3:
-			CreateProjectile(node, type, -0.5f, 0.5f, textures);
-			CreateProjectile(node, type, 0.0f, 0.5f, textures);
-			CreateProjectile(node, type, 0.5f, 0.5f, textures);
-			break;
-
-	}
-
-}
-
-void Bike::CreateProjectile(SceneNode& node, ProjectileType type, float x_offset, float y_offset,
-	const TextureHolder& textures) const
-{
-	std::unique_ptr<Projectile> projectile(new Projectile(type, textures));
-	sf::Vector2f offset(x_offset * m_sprite.getGlobalBounds().width, y_offset * m_sprite.getGlobalBounds().height);
-	sf::Vector2f velocity(0, projectile->GetMaxSpeed());
-
-	float sign = IsAllied() ? -1.f : +1.f;
-	projectile->setPosition(GetWorldPosition() + offset * sign);
-	projectile->SetVelocity(velocity * sign);
-	node.AttachChild(std::move(projectile));
 }
 
 sf::FloatRect Bike::GetBoundingRect() const
@@ -360,15 +269,15 @@ void Bike::Remove()
 	Entity::Remove();
 	m_show_explosion = false;
 }
-
-void Bike::CheckPickupDrop(CommandQueue& commands)
-{
-	if(!IsAllied() && Utility::RandomInt(3) == 0 && !m_spawned_pickup)
-	{
-		commands.Push(m_drop_pickup_command);
-	}
-	m_spawned_pickup = true;
-}
+//
+//void Bike::CheckPickupDrop(CommandQueue& commands)
+//{
+//	if(!IsAllied() && Utility::RandomInt(3) == 0 && !m_spawned_pickup)
+//	{
+//		commands.Push(m_drop_pickup_command);
+//	}
+//	m_spawned_pickup = true;
+//}
 
 void Bike::CreatePickup(SceneNode& node, const TextureHolder& textures) const
 {
@@ -482,5 +391,7 @@ void Bike::DecreaseSpeed(float speedDown)
 		m_speed = 0;
 }
 
-
-
+void Bike::SetBoost(bool hasBoost)
+{
+	m_boost_ready = hasBoost;
+}

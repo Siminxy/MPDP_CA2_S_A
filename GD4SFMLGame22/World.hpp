@@ -67,7 +67,6 @@ private:
 	void AdaptPlayerPosition();
 	void AdaptPlayerVelocity();
 
-	void GuideMissiles();
 	void HandleCollisions();
 	void DestroyEntitiesOutsideView();
 	void UpdateSounds();

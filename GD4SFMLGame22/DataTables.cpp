@@ -96,29 +96,13 @@ std::vector<PickupData> InitializePickupData()
 {
 	std::vector<PickupData> data(static_cast<int>(PickupType::kPickupCount));
 
-	data[static_cast<int>(PickupType::kHealthRefill)].m_texture = Textures::kEntities;
-	data[static_cast<int>(PickupType::kHealthRefill)].m_texture_rect = sf::IntRect(0, 64, 40, 40);
-	data[static_cast<int>(PickupType::kHealthRefill)].m_action = [](Bike& a) {a.Repair(25); };
-
-	data[static_cast<int>(PickupType::kMissileRefill)].m_texture = Textures::kEntities;
-	data[static_cast<int>(PickupType::kMissileRefill)].m_texture_rect = sf::IntRect(40, 64, 40, 40);
-	data[static_cast<int>(PickupType::kMissileRefill)].m_action = std::bind(&Bike::CollectMissiles, std::placeholders::_1, 3);
-
-	data[static_cast<int>(PickupType::kFireSpread)].m_texture = Textures::kEntities;
-	data[static_cast<int>(PickupType::kFireSpread)].m_texture_rect = sf::IntRect(80, 64, 40, 40);
-	data[static_cast<int>(PickupType::kFireSpread)].m_action = std::bind(&Bike::IncreaseSpread, std::placeholders::_1);
-
-	data[static_cast<int>(PickupType::kFireRate)].m_texture = Textures::kEntities;
-	data[static_cast<int>(PickupType::kFireRate)].m_texture_rect = sf::IntRect(120, 64, 40, 40);
-	data[static_cast<int>(PickupType::kFireRate)].m_action = std::bind(&Bike::IncreaseFireRate, std::placeholders::_1);
-
 	data[static_cast<int>(PickupType::kInvincible)].m_texture = Textures::kSpriteSheet;
 	data[static_cast<int>(PickupType::kInvincible)].m_texture_rect = sf::IntRect(150, 171, 29, 28);
 	data[static_cast<int>(PickupType::kInvincible)].m_action = [](Bike& a) {a.Repair(25); };
 
 	data[static_cast<int>(PickupType::kBoostRefill)].m_texture = Textures::kSpriteSheet;
 	data[static_cast<int>(PickupType::kBoostRefill)].m_texture_rect = sf::IntRect(171, 122, 29, 28);
-	data[static_cast<int>(PickupType::kBoostRefill)].m_action = [](Bike& a) {a.CollectBoost(); };
+	data[static_cast<int>(PickupType::kBoostRefill)].m_action = [](Bike& a) {a.SetBoost(true); };
 
 	return data;
 }

@@ -127,13 +127,13 @@ bool MultiplayerGameState::Update(sf::Time dt)
 		m_world.Update(dt);
 
 		//Remove players whose aircraft were destroyed
-		bool found_local_plane = false;
+		bool found_local_bike = false;
 		for(auto itr = m_players.begin(); itr != m_players.end();)
 		{
 			//Check if there are no more local planes for remote clients
 			if(std::find(m_local_player_identifiers.begin(), m_local_player_identifiers.end(), itr->first) != m_local_player_identifiers.end())
 			{
-				found_local_plane = true;
+				found_local_bike = true;
 			}
 
 			if(!m_world.GetBike(itr->first))
@@ -152,7 +152,7 @@ bool MultiplayerGameState::Update(sf::Time dt)
 			}
 		}
 
-		if(!found_local_plane && m_game_started)
+		if(!found_local_bike && m_game_started)
 		{
 			RequestStackPush(StateID::kGameOver);
 		}
@@ -227,9 +227,9 @@ bool MultiplayerGameState::Update(sf::Time dt)
 
 			for(sf::Int32 identifier : m_local_player_identifiers)
 			{
-				if(Bike* aircraft = m_world.GetBike(identifier))
+				if(Bike* bike = m_world.GetBike(identifier))
 				{
-					position_update_packet << identifier << aircraft->getPosition().x << aircraft->getPosition().y << static_cast<sf::Int32>(aircraft->GetHitPoints()) << static_cast<sf::Int32>(aircraft->GetMissileAmmo());
+					position_update_packet << identifier << bike->getPosition().x << bike->getPosition().y << static_cast<sf::Int32>(bike->GetHitPoints()) << bike->GetBoost() << bike->GetInvincibility();
 				}
 			}
 			m_socket.send(position_update_packet);
@@ -355,88 +355,90 @@ void MultiplayerGameState::HandlePacket(sf::Int32 packet_type, sf::Packet& packe
 	}
 	break;
 
-	//Sent by the server to spawn player 1 airplane on connect
+	//Sent by the server to spawn player 1 bike on connect
 	case Server::PacketType::SpawnSelf:
 	{
-		sf::Int32 aircraft_identifier;
-		sf::Vector2f aircraft_position;
-		packet >> aircraft_identifier >> aircraft_position.x >> aircraft_position.y;
-		Bike* aircraft = m_world.AddBike(aircraft_identifier);
-		aircraft->setPosition(aircraft_position);
-		m_players[aircraft_identifier].reset(new Player(&m_socket, aircraft_identifier, GetContext().keys1));
-		m_local_player_identifiers.push_back(aircraft_identifier);
+		sf::Int32 bike_identifier;
+		sf::Vector2f bike_position;
+		packet >> bike_identifier >> bike_position.x >> bike_position.y;
+		Bike* bike = m_world.AddBike(bike_identifier);
+		bike->setPosition(bike_position);
+		m_players[bike_identifier].reset(new Player(&m_socket, bike_identifier, GetContext().keys1));
+		m_local_player_identifiers.push_back(bike_identifier);
 		m_game_started = true;
 	}
 	break;
 
 	case Server::PacketType::PlayerConnect:
 	{
-		sf::Int32 aircraft_identifier;
-		sf::Vector2f aircraft_position;
-		packet >> aircraft_identifier >> aircraft_position.x >> aircraft_position.y;
+		sf::Int32 bike_identifier;
+		sf::Vector2f bike_position;
+		packet >> bike_identifier >> bike_position.x >> bike_position.y;
 
-		Bike* aircraft = m_world.AddBike(aircraft_identifier);
-		aircraft->setPosition(aircraft_position);
-		m_players[aircraft_identifier].reset(new Player(&m_socket, aircraft_identifier, nullptr));
+		Bike* bike = m_world.AddBike(bike_identifier);
+		bike->setPosition(bike_position);
+		m_players[bike_identifier].reset(new Player(&m_socket, bike_identifier, nullptr));
 	}
 	break;
 
 	case Server::PacketType::PlayerDisconnect:
 	{
-		sf::Int32 aircraft_identifier;
-		packet >> aircraft_identifier;
-		m_world.RemoveBike(aircraft_identifier);
-		m_players.erase(aircraft_identifier);
+		sf::Int32 bike_identifier;
+		packet >> bike_identifier;
+		m_world.RemoveBike(bike_identifier);
+		m_players.erase(bike_identifier);
 	}
 	break;
 
 	case Server::PacketType::InitialState:
 	{
-		sf::Int32 aircraft_count;
+		sf::Int32 bike_count;
 		float world_height, current_scroll;
 		packet >> world_height >> current_scroll;
 
 		m_world.SetWorldHeight(world_height);
 		m_world.SetCurrentBattleFieldPosition(current_scroll);
 
-		packet >> aircraft_count;
-		for (sf::Int32 i = 0; i < aircraft_count; ++i)
+		packet >> bike_count;
+		for (sf::Int32 i = 0; i < bike_count; ++i)
 		{
-			sf::Int32 aircraft_identifier;
+			sf::Int32 bike_identifier;
 			sf::Int32 hitpoints;
-			sf::Int32 missile_ammo;
-			sf::Vector2f aircraft_position;
-			packet >> aircraft_identifier >> aircraft_position.x >> aircraft_position.y >> hitpoints >> missile_ammo;
+			bool boost;
+			//bool invincibility;
+			sf::Vector2f bike_position;
+			packet >> bike_identifier >> bike_position.x >> bike_position.y >> hitpoints >> boost;// >> invincibility;
 
-			Bike* aircraft = m_world.AddBike(aircraft_identifier);
-			aircraft->setPosition(aircraft_position);
-			aircraft->SetHitpoints(hitpoints);
-			aircraft->SetMissileAmmo(missile_ammo);
+			Bike* bike = m_world.AddBike(bike_identifier);
+			bike->setPosition(bike_position);
+			bike->SetHitpoints(hitpoints);
+			bike->SetBoost(boost);
+			//bike->SetInvincibility(invincibility);
 
-			m_players[aircraft_identifier].reset(new Player(&m_socket, aircraft_identifier, nullptr));
+			m_players[bike_identifier].reset(new Player(&m_socket, bike_identifier, nullptr));
 		}
 	}
 	break;
 
 	case Server::PacketType::AcceptCoopPartner:
 	{
-		sf::Int32 aircraft_identifier;
-		packet >> aircraft_identifier;
+		sf::Int32 bike_identifier;
+		packet >> bike_identifier;
 
-		m_world.AddBike(aircraft_identifier);
-		m_players[aircraft_identifier].reset(new Player(&m_socket, aircraft_identifier, GetContext().keys2));
-		m_local_player_identifiers.emplace_back(aircraft_identifier);
+		m_world.AddBike(bike_identifier);
+		m_players[bike_identifier].reset(new Player(&m_socket, bike_identifier, GetContext().keys2));
+		m_local_player_identifiers.emplace_back(bike_identifier);
 	}
 	break;
 
-	//Player event, like missile fired occurs
+	//Player event, like player becomes invincible
 	case Server::PacketType::PlayerEvent:
 	{
-		sf::Int32 aircraft_identifier;
+		sf::Int32 bike_identifier;
 		sf::Int32 action;
-		packet >> aircraft_identifier >> action;
+		packet >> bike_identifier >> action;
 
-		auto itr = m_players.find(aircraft_identifier);
+		auto itr = m_players.find(bike_identifier);
 		if (itr != m_players.end())
 		{
 			itr->second->HandleNetworkEvent(static_cast<PlayerAction>(action), m_world.GetCommandQueue());
@@ -444,15 +446,15 @@ void MultiplayerGameState::HandlePacket(sf::Int32 packet_type, sf::Packet& packe
 	}
 	break;
 
-	//Player's movement or fire keyboard state changes
+	//Player's movement or boost keyboard state changes
 	case Server::PacketType::PlayerRealtimeChange:
 	{
-		sf::Int32 aircraft_identifier;
+		sf::Int32 bike_identifier;
 		sf::Int32 action;
 		bool action_enabled;
-		packet >> aircraft_identifier >> action >> action_enabled;
+		packet >> bike_identifier >> action >> action_enabled;
 
-		auto itr = m_players.find(aircraft_identifier);
+		auto itr = m_players.find(bike_identifier);
 		if (itr != m_players.end())
 		{
 			itr->second->HandleNetworkRealtimeChange(static_cast<PlayerAction>(action), action_enabled);
@@ -494,30 +496,33 @@ void MultiplayerGameState::HandlePacket(sf::Int32 packet_type, sf::Packet& packe
 	case Server::PacketType::UpdateClientState:
 	{
 		float current_world_position;
-		sf::Int32 aircraft_count;
-		packet >> current_world_position >> aircraft_count;
+		sf::Int32 bike_count;
+		packet >> current_world_position >> bike_count;
 
 		float current_view_position = m_world.GetViewBounds().top + m_world.GetViewBounds().height;
 
 		//Set the world's scroll compensation according to whether the view is behind or ahead
 		m_world.SetWorldScrollCompensation(current_view_position / current_world_position);
 
-		for (sf::Int32 i = 0; i < aircraft_count; ++i)
+		for (sf::Int32 i = 0; i < bike_count; ++i)
 		{
-			sf::Vector2f aircraft_position;
-			sf::Int32 aircraft_identifier;
+			sf::Vector2f bike_position;
+			sf::Int32 bike_identifier;
 			sf::Int32 hitpoints;
-			sf::Int32 ammo;
-			packet >> aircraft_identifier >> aircraft_position.x >> aircraft_position.y >> hitpoints >> ammo;
+			bool boost;
+			//bool invincibility;
 
-			Bike* aircraft = m_world.GetBike(aircraft_identifier);
-			bool is_local_plane = std::find(m_local_player_identifiers.begin(), m_local_player_identifiers.end(), aircraft_identifier) != m_local_player_identifiers.end();
-			if(aircraft && !is_local_plane)
+			packet >> bike_identifier >> bike_position.x >> bike_position.y >> hitpoints >> boost;
+
+			Bike* bike = m_world.GetBike(bike_identifier);
+			bool is_local_bike = std::find(m_local_player_identifiers.begin(), m_local_player_identifiers.end(), bike_identifier) != m_local_player_identifiers.end();
+			if(bike && !is_local_bike)
 			{
-				sf::Vector2f interpolated_position = aircraft->getPosition() + (aircraft_position - aircraft->getPosition()) * 0.1f;
-				aircraft->setPosition(interpolated_position);
-				aircraft->SetHitpoints(hitpoints);
-				aircraft->SetMissileAmmo(ammo);
+				sf::Vector2f interpolated_position = bike->getPosition() + (bike_position - bike->getPosition()) * 0.1f;
+				bike->setPosition(interpolated_position);
+				bike->SetHitpoints(hitpoints);
+				bike->SetBoost(boost);
+				//bike->SetInvincibility(invincibility);
 			}
 		}
 	}
