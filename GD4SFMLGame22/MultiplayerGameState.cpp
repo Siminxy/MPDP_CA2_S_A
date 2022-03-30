@@ -45,7 +45,7 @@ MultiplayerGameState::MultiplayerGameState(StateStack& stack, Context context, b
 , m_time_since_last_packet(sf::seconds(0.f))
 {
 	m_broadcast_text.setFont(context.fonts->Get(Fonts::Main));
-	m_broadcast_text.setPosition(1024.f / 2, 100.f);
+	m_broadcast_text.setPosition(1024.f - 200.f, 600.f);
 
 	m_player_invitation_text.setFont(context.fonts->Get(Fonts::Main));
 	m_player_invitation_text.setCharacterSize(20);

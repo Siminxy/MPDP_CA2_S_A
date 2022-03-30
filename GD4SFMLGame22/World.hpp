@@ -112,6 +112,7 @@ private:
 	sf::FloatRect m_world_bounds;
 	sf::Vector2f m_spawn_position;
 	float m_scrollspeed;
+	float m_x_bound;
 	float m_scrollspeed_compensation;
 	std::vector<Bike*> m_player_bike;
 	std::vector<SpawnPoint> m_enemy_spawn_points;

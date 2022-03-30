@@ -16,14 +16,15 @@
 World::World(sf::RenderTarget& output_target, FontHolder& font, SoundPlayer& sounds, bool networked)
 	: m_target(output_target)
 	, m_camera(output_target.getDefaultView())
+	, m_x_bound(m_world_bounds.width / 3.f)
 	, m_textures()
 	, m_fonts(font)
 	, m_sounds(sounds)
 	, m_scenegraph()
 	, m_scene_layers()
-	, m_world_bounds(0.f, 0.f, 5000, m_camera.getSize().x)
+	, m_world_bounds(0.f, 0.f, 8000, m_camera.getSize().x)
 	, m_spawn_position(m_camera.getSize().x/2.f, m_world_bounds.height - m_camera.getSize().y /2.f)
-	, m_scrollspeed(-50.f)
+	, m_scrollspeed(-150.f)
 	, m_scrollspeed_compensation(1.f)
 	, m_player_bike()
 	, m_enemy_spawn_points()
@@ -47,6 +48,9 @@ void World::SetWorldScrollCompensation(float compensation)
 
 void World::Update(sf::Time dt)
 {
+	//Update x Bound
+	m_x_bound++;
+
 	//Scroll the world
 	m_camera.move(-(m_scrollspeed * dt.asSeconds() * m_scrollspeed_compensation), 0);
 
@@ -277,24 +281,22 @@ sf::FloatRect World::GetViewBounds() const
 
 sf::FloatRect World::GetBattlefieldBounds() const
 {
-	//Return camera bounds + a extension to width where obstacles spawn offscreen
+	//Return camera bounds + width updated to constantly change
 	sf::FloatRect bounds = GetViewBounds();
-	bounds.width = m_camera.getSize().x + 100.f;
+	bounds.width = m_x_bound;
 
 	return bounds;
 }
 
-//Cannot figure out how to make it spawn obstacles, can only get first 5 to spawn
-//Have also switched to m_obstacle_spawn_points.back().m_x > GetBattlefieldBounds().width and had a counter but
-//Nothing worked
 void World::SpawnObstacles()
 {
+	
 	//Spawn an obstacle when they are relevant - they are relevant when they enter the battlefield bounds
-	while (!m_obstacle_spawn_points.empty() && m_obstacle_spawn_points.back().m_y > GetBattlefieldBounds().top)
+	while (!m_obstacle_spawn_points.empty() && m_obstacle_spawn_points.back().m_x < GetBattlefieldBounds().width)
 	{
+		//std::cout << m_x_bound << " " << m_obstacle_spawn_points.back().m_x << std::endl;
 		ObstacleSpawnPoint spawn = m_obstacle_spawn_points.back();
 		std::cout << static_cast<int>(spawn.m_type) << std::endl;
-		//std::unique_ptr<Obstacle> enemy(new Obstacle(spawn.m_type, m_textures));
 		std::unique_ptr<Obstacle> obs (new Obstacle(spawn.m_type, m_textures));
 		obs->setPosition(spawn.m_x, spawn.m_y);
 		m_scene_layers[static_cast<int>(Layers::kUpperAir)]->AttachChild(std::move(obs));
@@ -350,7 +352,7 @@ void World::SortObstacles()
 	//Sort all enemies according to their x-value, such that lower enemies are checked first for spawning
 	std::sort(m_obstacle_spawn_points.begin(), m_obstacle_spawn_points.end(), [](ObstacleSpawnPoint lhs, ObstacleSpawnPoint rhs)
 	{
-		return lhs.m_x < rhs.m_x;
+		return lhs.m_x > rhs.m_x;
 	});
 }
 
