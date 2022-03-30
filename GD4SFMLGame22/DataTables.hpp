@@ -25,19 +25,10 @@ struct BikeData
 	float m_speed;
 	Textures m_texture;
 	sf::IntRect m_texture_rect;
-	sf::Time m_fire_interval;
 	std::vector<Direction> m_directions;
 	bool m_has_roll_animation;
-	float m_offroad_resistance;
+	//float m_offroad_resistance;
 	float m_max_speed;
-};
-
-struct ProjectileData
-{
-	int m_damage;
-	float m_speed;
-	Textures m_texture;
-	sf::IntRect m_texture_rect;
 };
 
 struct PickupData
@@ -61,7 +52,6 @@ struct ParticleData
 };
 
 std::vector<BikeData> InitializeBikeData();
-std::vector<ProjectileData> InitializeProjectileData();
 std::vector<PickupData> InitializePickupData();
 std::vector<ParticleData> InitializeParticleData();
 std::vector<ObstacleData> InitializeObstacleData();

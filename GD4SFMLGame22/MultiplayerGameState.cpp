@@ -405,9 +405,9 @@ void MultiplayerGameState::HandlePacket(sf::Int32 packet_type, sf::Packet& packe
 			sf::Int32 bike_identifier;
 			sf::Int32 hitpoints;
 			bool boost;
-			//bool invincibility;
+			bool invincibility;
 			sf::Vector2f bike_position;
-			packet >> bike_identifier >> bike_position.x >> bike_position.y >> hitpoints >> boost;// >> invincibility;
+			packet >> bike_identifier >> bike_position.x >> bike_position.y >> hitpoints >> boost >> invincibility;
 
 			Bike* bike = m_world.AddBike(bike_identifier);
 			bike->setPosition(bike_position);
@@ -510,9 +510,9 @@ void MultiplayerGameState::HandlePacket(sf::Int32 packet_type, sf::Packet& packe
 			sf::Int32 bike_identifier;
 			sf::Int32 hitpoints;
 			bool boost;
-			//bool invincibility;
+			bool invincibility;
 
-			packet >> bike_identifier >> bike_position.x >> bike_position.y >> hitpoints >> boost;
+			packet >> bike_identifier >> bike_position.x >> bike_position.y >> hitpoints >> boost >> invincibility;
 
 			Bike* bike = m_world.GetBike(bike_identifier);
 			bool is_local_bike = std::find(m_local_player_identifiers.begin(), m_local_player_identifiers.end(), bike_identifier) != m_local_player_identifiers.end();

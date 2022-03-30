@@ -9,7 +9,6 @@
 #include "ParticleType.hpp"
 #include "Pickup.hpp"
 #include "PostEffect.hpp"
-#include "Projectile.hpp"
 #include "SoundNode.hpp"
 #include "Utility.hpp"
 
@@ -22,9 +21,9 @@ World::World(sf::RenderTarget& output_target, FontHolder& font, SoundPlayer& sou
 	, m_sounds(sounds)
 	, m_scenegraph()
 	, m_scene_layers()
-	, m_world_bounds(0.f, 0.f, 8000, m_camera.getSize().x)
+	, m_world_bounds(0.f, 0.f, 12000, m_camera.getSize().x)
 	, m_spawn_position(m_camera.getSize().x/2.f, m_world_bounds.height - m_camera.getSize().y /2.f)
-	, m_scrollspeed(-150.f)
+	, m_scrollspeed(-200.f)
 	, m_scrollspeed_compensation(1.f)
 	, m_player_bike()
 	, m_enemy_spawn_points()
@@ -50,7 +49,7 @@ void World::SetWorldScrollCompensation(float compensation)
 void World::Update(sf::Time dt)
 {
 	//Update x Bound
-	m_x_bound++;
+	m_x_bound+=2;
 
 	//Scroll the world
 	m_camera.move(-(m_scrollspeed * dt.asSeconds() * m_scrollspeed_compensation), 0);
@@ -215,7 +214,7 @@ void World::BuildScene()
 	// Add the finish line to the scene
 	sf::Texture& finish_texture = m_textures.Get(Textures::kFinishLine);
 	std::unique_ptr<SpriteNode> finish_sprite(new SpriteNode(finish_texture));
-	finish_sprite->setPosition(4000.0f, 650);
+	finish_sprite->setPosition(11000.0f, 650);
 	m_finish_sprite = finish_sprite.get();
 	m_scene_layers[static_cast<int>(Layers::kBackground)]->AttachChild(std::move(finish_sprite));
 
@@ -319,6 +318,7 @@ void World::AddObstacles()
 	{
 		return;
 	}
+
 	//Add obstacles
 	AddObstacle(ObstacleType::kBarrier, 200.f, 650.f);
 
@@ -347,6 +347,40 @@ void World::AddObstacles()
 	AddObstacle(ObstacleType::kAcidSpill, 4250.f, 650.f);
 	AddObstacle(ObstacleType::kTarSpill, 4250.f, 750.f);
 
+
+	AddObstacle(ObstacleType::kBarrier, 4500.f, 650.f);
+
+	AddObstacle(ObstacleType::kTarSpill, 4500.f, 750.f);
+
+	AddObstacle(ObstacleType::kTarSpill, 4700.f, 950.f);
+	AddObstacle(ObstacleType::kAcidSpill, 4800.f, 750.f);
+	AddObstacle(ObstacleType::kBarrier, 4800.f, 650.f);
+
+	AddObstacle(ObstacleType::kBarrier, 5300.f, 800.f);
+	AddObstacle(ObstacleType::kAcidSpill, 5450.f, 650.f);
+	AddObstacle(ObstacleType::kTarSpill, 5650.f, 750.f);
+
+	AddObstacle(ObstacleType::kAcidSpill, 5750.f, 750.f);
+	AddObstacle(ObstacleType::kTarSpill, 6250.f, 950.f);
+	AddObstacle(ObstacleType::kBarrier, 6550.f, 850.f);
+
+	AddObstacle(ObstacleType::kAcidSpill, 6750.f, 650.f);
+	AddObstacle(ObstacleType::kTarSpill, 7200.f, 750.f);
+
+	AddObstacle(ObstacleType::kBarrier, 7350.f, 800.f);
+	AddObstacle(ObstacleType::kAcidSpill, 7500.f, 650.f);
+	AddObstacle(ObstacleType::kTarSpill, 8000.f, 750.f);
+
+	AddObstacle(ObstacleType::kBarrier, 8200.f, 650.f);
+	AddObstacle(ObstacleType::kTarSpill, 8400.f, 750.f);
+
+	AddObstacle(ObstacleType::kAcidSpill, 8950.f, 650.f);
+	AddObstacle(ObstacleType::kTarSpill, 9300.f, 750.f);
+
+	AddObstacle(ObstacleType::kBarrier, 9500.f, 800.f);
+	AddObstacle(ObstacleType::kAcidSpill, 9750.f, 650.f);
+	AddObstacle(ObstacleType::kTarSpill, 1050.f, 750.f);
+
 	SortObstacles();
 }
 
@@ -358,7 +392,6 @@ void World::SortObstacles()
 			return lhs.m_x > rhs.m_x;
 		});
 }
-
 
 void World::SpawnPickups()
 {
@@ -398,6 +431,10 @@ void World::AddPickups()
 	AddPickup(PickupType::kBoostRefill, 4500.f, 850.f);
 	AddPickup(PickupType::kBoostRefill, 5500.f, 850.f);
 	AddPickup(PickupType::kInvincible, 7500.f, 850.f);
+
+	AddPickup(PickupType::kBoostRefill, 8000.f, 850.f);
+	AddPickup(PickupType::kBoostRefill, 8200.f, 850.f);
+	AddPickup(PickupType::kInvincible, 9200.f, 850.f);
 
 	SortPickups();
 }

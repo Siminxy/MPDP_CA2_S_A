@@ -6,7 +6,6 @@
 
 #include <SFML/Graphics/RenderTarget.hpp>
 
-#include "Projectile.hpp"
 #include "ResourceHolder.hpp"
 #include "Utility.hpp"
 #include "DataTables.hpp"
@@ -28,7 +27,6 @@ Bike::Bike(BikeType type, const TextureHolder& textures, const FontHolder& fonts
 , m_max_speed(Table[static_cast<int>(type)].m_max_speed)
 , m_explosion(textures.Get(Textures::kExplosion))
 , m_boost_ready(true)
-//, m_fire_countdown(sf::Time::Zero)
 , m_is_marked_for_removal(false)
 , m_show_explosion(true)
 , m_explosion_began(false)
@@ -330,11 +328,6 @@ float Bike::GetSpeed() const
 	return m_speed;
 }
 
-float Bike::GetOffroadResistance() const
-{
-	return m_offroad_resistance;
-}
-
 void Bike::CollectInvincibility()
 {
 	std::cout << "INVINCIBLE" << std::endl;
@@ -361,7 +354,7 @@ void Bike::IncreaseSpeed(float speedUp)
 void Bike::DecreaseSpeed(float speedDown)
 {
 	m_speed = m_speed - (m_speed * speedDown);
-	m_speed = m_speed - (m_speed * m_offroad_resistance);
+	//m_speed = m_speed - (m_speed * m_offroad_resistance);
 	if (m_speed < 0)
 		m_speed = 0;
 }
