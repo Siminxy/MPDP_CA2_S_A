@@ -29,6 +29,7 @@ World::World(sf::RenderTarget& output_target, FontHolder& font, SoundPlayer& sou
 	, m_player_bike()
 	, m_enemy_spawn_points()
 	, m_obstacle_spawn_points()
+	, m_pickup_spawn_points()
 	, m_active_enemies()
 	, m_networked_world(networked)
 	, m_network_node(nullptr)
@@ -77,6 +78,7 @@ void World::Update(sf::Time dt)
 	m_scenegraph.RemoveWrecks();
 
 	SpawnObstacles();
+	SpawnPickups();
 
 	//Apply movement
 	m_scenegraph.Update(dt, m_command_queue);
@@ -237,6 +239,7 @@ void World::BuildScene()
 	}
 
 	AddObstacles();
+	AddPickups();
 }
 
 CommandQueue& World::GetCommandQueue()
@@ -290,14 +293,14 @@ sf::FloatRect World::GetBattlefieldBounds() const
 
 void World::SpawnObstacles()
 {
-	
+
 	//Spawn an obstacle when they are relevant - they are relevant when they enter the battlefield bounds
 	while (!m_obstacle_spawn_points.empty() && m_obstacle_spawn_points.back().m_x < GetBattlefieldBounds().width)
 	{
 		//std::cout << m_x_bound << " " << m_obstacle_spawn_points.back().m_x << std::endl;
 		ObstacleSpawnPoint spawn = m_obstacle_spawn_points.back();
 		std::cout << static_cast<int>(spawn.m_type) << std::endl;
-		std::unique_ptr<Obstacle> obs (new Obstacle(spawn.m_type, m_textures));
+		std::unique_ptr<Obstacle> obs(new Obstacle(spawn.m_type, m_textures));
 		obs->setPosition(spawn.m_x, spawn.m_y);
 		m_scene_layers[static_cast<int>(Layers::kUpperAir)]->AttachChild(std::move(obs));
 		m_obstacle_spawn_points.pop_back();
@@ -324,7 +327,7 @@ void World::AddObstacles()
 	AddObstacle(ObstacleType::kTarSpill, 800.f, 950.f);
 	AddObstacle(ObstacleType::kAcidSpill, 850.f, 750.f);
 	AddObstacle(ObstacleType::kBarrier, 900.f, 650.f);
-	
+
 	AddObstacle(ObstacleType::kBarrier, 1450.f, 950.f);
 	AddObstacle(ObstacleType::kBarrier, 1950.f, 850.f);
 	AddObstacle(ObstacleType::kBarrier, 2000.f, 650.f);
@@ -351,56 +354,62 @@ void World::SortObstacles()
 {
 	//Sort all enemies according to their x-value, such that lower enemies are checked first for spawning
 	std::sort(m_obstacle_spawn_points.begin(), m_obstacle_spawn_points.end(), [](ObstacleSpawnPoint lhs, ObstacleSpawnPoint rhs)
-	{
-		return lhs.m_x > rhs.m_x;
-	});
+		{
+			return lhs.m_x > rhs.m_x;
+		});
 }
 
-//
-//void World::GuideMissiles()
-//{
-//	// Setup command that stores all enemies in mActiveEnemies
-//	Command enemyCollector;
-//	enemyCollector.category = Category::kEnemyBike;
-//	enemyCollector.action = DerivedAction<Bike>([this](Bike& enemy, sf::Time)
-//	{
-//		if (!enemy.IsDestroyed())
-//			m_active_enemies.emplace_back(&enemy);
-//	});
-//
-//	// Setup command that guides all missiles to the enemy which is currently closest to the player
-//	Command missileGuider;
-//	missileGuider.category = Category::kAlliedProjectile;
-//	missileGuider.action = DerivedAction<Projectile>([this](Projectile& missile, sf::Time)
-//	{
-//		// Ignore unguided bullets
-//		if (!missile.IsGuided())
-//			return;
-//
-//		float minDistance = std::numeric_limits<float>::max();
-//		Bike* closestEnemy = nullptr;
-//
-//		// Find closest enemy
-//		for(Bike * enemy :  m_active_enemies)
-//		{
-//			float enemyDistance = Distance(missile, *enemy);
-//
-//			if (enemyDistance < minDistance)
-//			{
-//				closestEnemy = enemy;
-//				minDistance = enemyDistance;
-//			}
-//		}
-//
-//		if (closestEnemy)
-//			missile.GuideTowards(closestEnemy->GetWorldPosition());
-//	});
-//
-//	// Push commands, reset active enemies
-//	m_command_queue.Push(enemyCollector);
-//	m_command_queue.Push(missileGuider);
-//	m_active_enemies.clear();
-//}
+
+void World::SpawnPickups()
+{
+	//Spawn an Pickups when they are relevant - they are relevant when they enter the battlefield bounds
+	while (!m_pickup_spawn_points.empty() && m_pickup_spawn_points.back().m_x < GetBattlefieldBounds().width)
+	{
+		//std::cout << m_x_bound << " " << m_obstacle_spawn_points.back().m_x << std::endl;
+		PickupSpawnPoint spawn = m_pickup_spawn_points.back();
+		std::cout << static_cast<int>(spawn.m_type) << std::endl;
+		std::unique_ptr<Pickup> pickup(new Pickup(spawn.m_type, m_textures));
+		pickup->setPosition(spawn.m_x, spawn.m_y);
+		m_scene_layers[static_cast<int>(Layers::kUpperAir)]->AttachChild(std::move(pickup));
+		m_pickup_spawn_points.pop_back();
+	}
+}
+
+void World::AddPickup(PickupType type, float relX, float relY)
+{
+	PickupSpawnPoint spawn(type, relX, relY);
+	m_pickup_spawn_points.emplace_back(spawn);
+}
+
+void World::AddPickups()
+{
+	if (m_networked_world)
+	{
+		return;
+	}
+
+	//Add pickups
+	AddPickup(PickupType::kBoostRefill, 500.f, 850.f);
+	AddPickup(PickupType::kBoostRefill, 1500.f, 850.f);
+	AddPickup(PickupType::kBoostRefill, 3000.f, 850.f);
+	AddPickup(PickupType::kInvincible, 3500.f, 850.f);
+
+	AddPickup(PickupType::kBoostRefill, 6500.f, 850.f);
+	AddPickup(PickupType::kBoostRefill, 4500.f, 850.f);
+	AddPickup(PickupType::kBoostRefill, 5500.f, 850.f);
+	AddPickup(PickupType::kInvincible, 7500.f, 850.f);
+
+	SortPickups();
+}
+
+void World::SortPickups()
+{
+	//Sort all enemies according to their x-value, such that lower pickups are checked first for spawning
+	std::sort(m_pickup_spawn_points.begin(), m_pickup_spawn_points.end(), [](PickupSpawnPoint lhs, PickupSpawnPoint rhs)
+		{
+			return lhs.m_x > rhs.m_x;
+		});
+}
 
 bool MatchesCategories(SceneNode::Pair& colliders, Category::Type type1, Category::Type type2)
 {
@@ -432,8 +441,12 @@ void World::HandleCollisions()
 			auto& player = static_cast<Bike&>(*pair.first);
 			auto& enemy = static_cast<Bike&>(*pair.second);
 			//Collision
-			player.Damage(enemy.GetHitPoints());
+			player.PlayLocalSound(m_command_queue, SoundEffect::kCollision);
 			enemy.Destroy();
+			if (!player.GetInvincibility())
+			{
+				player.Damage(enemy.GetHitPoints());
+			}
 		}
 
 		else if (MatchesCategories(pair, Category::Type::kPlayerBike, Category::Type::kPickup))
@@ -445,28 +458,20 @@ void World::HandleCollisions()
 			pickup.Destroy();
 			player.PlayLocalSound(m_command_queue, SoundEffect::kCollectPickup);
 		}
-
-		else if (MatchesCategories(pair, Category::Type::kPlayerBike, Category::Type::kEnemyProjectile) || MatchesCategories(pair, Category::Type::kEnemyBike, Category::Type::kAlliedProjectile))
-		{
-			auto& aircraft = static_cast<Bike&>(*pair.first);
-			auto& projectile = static_cast<Projectile&>(*pair.second);
-			//Apply the projectile damage to the plane
-			aircraft.Damage(projectile.GetDamage());
-			projectile.Destroy();
-		}
-
-
-		/*
-		 * if(MatchesCategories(pair, Category::Type::kPlayerBike, Category::kPlayerBike))
+		
+		if(MatchesCategories(pair, Category::Type::kPlayerBike, Category::kPlayerBike))
 		{
 			auto& player1 = static_cast<Bike&>(*pair.first);
 			auto& player2 = static_cast<Bike&>(*pair.second);
-			Collision
-			player1.DecreaseSpeed(50.f);
-			player2.DecreaseSpeed(50.f);
-		}
-		 */
+			player1.DecreaseSpeed(10.f);
+			player2.DecreaseSpeed(10.f);
+			player1.PlayLocalSound(m_command_queue, SoundEffect::kCollision);
 
+			if (player1.GetInvincibility())
+				player2.Destroy();
+			else if (player2.GetInvincibility())
+				player1.Destroy();
+		}
 
 		if (MatchesCategories(pair, Category::Type::kPlayerBike, Category::kPickup))
 		{
@@ -484,11 +489,14 @@ void World::HandleCollisions()
 			auto& obstacle = static_cast<Obstacle&>(*pair.second);
 
 			//Apply the slowdown to the plane
-			bike.DecreaseSpeed(obstacle.GetSlowdown());
 			obstacle.Destroy();
-			bike.Damage(10);
-
 			bike.PlayLocalSound(m_command_queue, SoundEffect::kCollision);
+
+			if(!bike.GetInvincibility())
+			{
+				bike.DecreaseSpeed(obstacle.GetSlowdown());
+				bike.Damage(10);
+			}
 		}
 	}
 }

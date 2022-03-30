@@ -141,6 +141,17 @@ void Bike::UpdateCurrent(sf::Time dt, CommandQueue& commands)
 	UpdateRollAnimation();
 	UpdateSpeed();
 
+	//Set or remove invincibility
+	if (m_invincible_counter > 0)
+	{
+		m_invincible_counter++;
+	}
+	if (m_invincible_counter > 100)
+	{
+		m_invincibility = false;
+		m_invincible_counter = 0;
+	}
+
 	//Entity has been destroyed, possibly drop pickup, mark for removal
 	if(IsDestroyed())
 	{
@@ -216,39 +227,6 @@ float Bike::GetMaxSpeed() const
 	return Table[static_cast<int>(m_type)].m_max_speed;
 }
 
-//
-//void Bike::CheckProjectileLaunch(sf::Time dt, CommandQueue& commands)
-//{
-//	//Enemies try and fire as often as possible
-//	if(!IsAllied())
-//	{
-//		Fire();
-//	}
-//
-//	//Rate the bullets - default to 2 times a second
-//	if(m_is_firing && m_fire_countdown <= sf::Time::Zero)
-//	{
-//		PlayLocalSound(commands, IsAllied() ? SoundEffect::kAlliedGunfire : SoundEffect::kEnemyGunfire);
-//		commands.Push(m_fire_command);
-//		m_fire_countdown += Table[static_cast<int>(m_type)].m_fire_interval / (m_fire_rate + 1.f);
-//		m_is_firing = false;
-//	}
-//	else if(m_fire_countdown > sf::Time::Zero)
-//	{
-//		//Wait, can't fire yet
-//		m_fire_countdown -= dt;
-//		m_is_firing = false;
-//	}
-//	//Missile launch
-//	if(m_is_launching_missile)
-//	{
-//		PlayLocalSound(commands, SoundEffect::kLaunchMissile);
-//		commands.Push(m_missile_command);
-//		m_is_launching_missile = false;
-//	}
-//
-//}
-
 bool Bike::IsAllied() const
 {
 	return m_type == BikeType::kRacer;
@@ -269,25 +247,16 @@ void Bike::Remove()
 	Entity::Remove();
 	m_show_explosion = false;
 }
-//
-//void Bike::CheckPickupDrop(CommandQueue& commands)
+
+//void Bike::CreatePickup(SceneNode& node, const TextureHolder& textures) const
 //{
-//	if(!IsAllied() && Utility::RandomInt(3) == 0 && !m_spawned_pickup)
-//	{
-//		commands.Push(m_drop_pickup_command);
-//	}
-//	m_spawned_pickup = true;
+//	auto type = static_cast<PickupType>(Utility::RandomInt(static_cast<int>(PickupType::kPickupCount)));
+//	std::unique_ptr<Pickup> pickup(new Pickup(type, textures));
+//	pickup->setPosition(GetWorldPosition());
+//	pickup->SetVelocity(0.f, 0.f);
+//	node.AttachChild(std::move(pickup));
 //}
-
-void Bike::CreatePickup(SceneNode& node, const TextureHolder& textures) const
-{
-	auto type = static_cast<PickupType>(Utility::RandomInt(static_cast<int>(PickupType::kPickupCount)));
-	std::unique_ptr<Pickup> pickup(new Pickup(type, textures));
-	pickup->setPosition(GetWorldPosition());
-	pickup->SetVelocity(0.f, 0.f);
-	node.AttachChild(std::move(pickup));
-}
-
+//
 
 void Bike::UpdateRollAnimation()
 {
@@ -299,7 +268,6 @@ void Bike::UpdateRollAnimation()
 		if (m_identifier > 1)
 			textureRect.top = (30 * m_identifier) % 240;
 
-		//textureRect.top += 30;
 		// Roll left: Texture rect offset to the left
 		if (GetVelocity().x < 0.f)
 			textureRect.left -= textureRect.width;
@@ -365,6 +333,13 @@ float Bike::GetSpeed() const
 float Bike::GetOffroadResistance() const
 {
 	return m_offroad_resistance;
+}
+
+void Bike::CollectInvincibility()
+{
+	std::cout << "INVINCIBLE" << std::endl;
+	m_invincibility = true;
+	m_invincible_counter = 1;
 }
 
 void Bike::UseBoost()

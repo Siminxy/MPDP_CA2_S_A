@@ -31,6 +31,8 @@ public:
 	float GetOffroadResistance() const;
 
 	bool GetBoost();
+	void CollectInvincibility();
+	bool GetIncvincibilty();
 	void UpdateTexts();
 	void UpdateMovementPattern(sf::Time dt);
 	float GetMaxSpeed() const;
@@ -76,6 +78,7 @@ private:
 	float m_speed;
 	float m_offroad_resistance;
 	unsigned int m_counter;
+	unsigned int m_invincible_counter;
 
 	bool m_played_explosion_sound;
 	bool m_is_player1;
