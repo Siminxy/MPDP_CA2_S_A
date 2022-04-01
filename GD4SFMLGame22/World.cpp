@@ -252,10 +252,11 @@ void World::AdaptPlayerPosition()
 	sf::FloatRect view_bounds = GetViewBounds();
 	const float border_distance = 40.f;
 	const float barrier_distance = 650.0f;
+	const float offscreen_amount = 400.0f;
 	for (Bike* aircraft : m_player_bike)
 	{
 		sf::Vector2f position = aircraft->getPosition();
-		position.x = std::max(position.x, view_bounds.left + border_distance);
+		position.x = std::max(position.x, view_bounds.left - offscreen_amount);
 		position.x = std::min(position.x, view_bounds.left + view_bounds.width - border_distance);
 		position.y = std::max(position.y, barrier_distance);
 		position.y = std::min(position.y, view_bounds.top + view_bounds.height - border_distance);
@@ -285,6 +286,7 @@ sf::FloatRect World::GetBattlefieldBounds() const
 {
 	//Return camera bounds + width updated to constantly change
 	sf::FloatRect bounds = GetViewBounds();
+	bounds.left -= 250.0f;
 	bounds.width = m_x_bound;
 
 	return bounds;
@@ -541,7 +543,7 @@ void World::HandleCollisions()
 void World::DestroyEntitiesOutsideView()
 {
 	Command command;
-	command.category = Category::Type::kEnemyBike | Category::Type::kProjectile | Category::Type::kObstacle;
+	command.category = Category::Type::kPlayerBike | Category::Type::kEnemyBike | Category::Type::kProjectile | Category::Type::kObstacle;
 	command.action = DerivedAction<Entity>([this](Entity& e, sf::Time)
 	{
 		//Does the object intersect with the battlefield
