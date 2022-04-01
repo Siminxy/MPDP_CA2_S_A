@@ -29,6 +29,7 @@ Bike::Bike(BikeType type, const TextureHolder& textures, const FontHolder& fonts
 , m_boost_ready(true)
 , m_is_marked_for_removal(false)
 , m_show_explosion(true)
+, m_invincibility(false)
 , m_explosion_began(false)
 , m_spawned_pickup(false)
 , m_pickups_enabled(true)
@@ -140,7 +141,7 @@ void Bike::UpdateCurrent(sf::Time dt, CommandQueue& commands)
 	UpdateSpeed();
 
 	//Set or remove invincibility
-	if (m_invincible_counter > 0)
+	if (m_invincible_counter > 0 || m_invincibility)
 	{
 		m_invincible_counter++;
 	}
@@ -258,13 +259,19 @@ void Bike::Remove()
 
 void Bike::UpdateRollAnimation()
 {
+	int const invincibility = 270;
+	int const bike_count = 9;
 	if (Table[static_cast<int>(m_type)].m_has_roll_animation)
 	{
 		//Note, spritesheet is set up where this value is the neutral, aka. the middle texture
 		sf::IntRect textureRect = Table[static_cast<int>(m_type)].m_texture_rect;
 
+		//Changes the top distance to change bike based off identifier
 		if (m_identifier > 1)
-			textureRect.top = (30 * m_identifier) % 240;
+			textureRect.top = (30 * m_identifier) % (bike_count * 30);
+
+		if (m_invincibility)
+			textureRect.top = invincibility;
 
 		// Roll left: Texture rect offset to the left
 		if (GetVelocity().x < 0.f)
