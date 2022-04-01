@@ -15,9 +15,9 @@ class GameServer
 public:
 	explicit GameServer(sf::Vector2f battlefield_size);
 	~GameServer();
-	void NotifyPlayerSpawn(sf::Int32 aircraft_identifier);
-	void NotifyPlayerRealtimeChange(sf::Int32 aircraft_identifier, sf::Int32 action, bool action_enabled);
-	void NotifyPlayerEvent(sf::Int32 aircraft_identifier, sf::Int32 action);
+	void NotifyPlayerSpawn(sf::Int32 bike_identifier);
+	void NotifyPlayerRealtimeChange(sf::Int32 bike_identifier, sf::Int32 action, bool action_enabled);
+	void NotifyPlayerEvent(sf::Int32 bike_identifier, sf::Int32 action);
 
 private:
 	struct RemotePeer
@@ -34,7 +34,8 @@ private:
 	{
 		sf::Vector2f m_position;
 		sf::Int32 m_hitpoints;
-		sf::Int32 m_missile_ammo;
+		bool m_boost;
+		bool m_invincibility;
 		std::map<sf::Int32, bool> m_realtime_actions;
 	};
 
@@ -67,7 +68,7 @@ private:
 	std::size_t m_max_connected_players;
 	std::size_t m_connected_players;
 
-	float m_world_height;
+	float m_world_width;
 	sf::FloatRect m_battlefield_rect;
 	float m_battlefield_scrollspeed;
 

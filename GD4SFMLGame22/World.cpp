@@ -287,7 +287,7 @@ sf::FloatRect World::GetBattlefieldBounds() const
 	//Return camera bounds + width updated to constantly change
 	sf::FloatRect bounds = GetViewBounds();
 	bounds.left -= 250.0f;
-	bounds.width = m_x_bound;
+	bounds.width = m_x_bound + 200;
 
 	return bounds;
 }
