@@ -270,6 +270,7 @@ void Bike::UpdateRollAnimation()
 		if (m_identifier > 1)
 			textureRect.top = (30 * m_identifier) % (bike_count * 30);
 
+		//Sets the bike to the 'invincibility' bike
 		if (m_invincibility)
 			textureRect.top = invincibility;
 
