@@ -502,8 +502,8 @@ void World::HandleCollisions()
 		{
 			auto& player1 = static_cast<Bike&>(*pair.first);
 			auto& player2 = static_cast<Bike&>(*pair.second);
-			player1.DecreaseSpeed(10.f);
-			player2.DecreaseSpeed(10.f);
+			//player1.DecreaseSpeed(10.f);
+			//player2.DecreaseSpeed(10.f);
 			player1.PlayLocalSound(m_command_queue, SoundEffect::kCollision);
 
 			if (player1.GetInvincibility())

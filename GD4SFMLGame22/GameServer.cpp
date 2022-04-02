@@ -34,6 +34,8 @@ GameServer::GameServer(sf::Vector2f battlefield_size)
 	, m_waiting_thread_end(false)
 	, m_last_spawn_time(sf::Time::Zero)
 	, m_time_for_next_spawn(sf::seconds(5.f))
+	, m_last_pickup_spawn_time(sf::Time::Zero)
+	, m_time_for_next_pickup_spawn(sf::seconds(15.f))
 {
 	m_listener_socket.setBlocking(false);
 	m_peers[0].reset(new RemotePeer());
@@ -172,7 +174,7 @@ void GameServer::Tick()
 	for(const auto& current : m_bike_info)
 	{
 		//As long one player has not crossed the finish line game on
-		if(current.second.m_position.y > 0.f)
+		if(current.second.m_position.x < 11000.0f)
 		{
 			all_bike_done = false;
 		}
@@ -201,11 +203,12 @@ void GameServer::Tick()
 	//Check if it is time to spawn obstacles and pickups
 	if(!m_bike_info.empty())
 	{
+		float x_pos = m_bike_info.begin()->second.m_position.x;
+
 		if (Now() >= m_time_for_next_spawn + m_last_spawn_time)
 		{
-			float x_pos = m_bike_info.begin()->second.m_position.x;
 			//Not going to spawn enemies near the end
-			if (x_pos < 11000.f)
+			if (x_pos < 10500.0f)
 			{
 				std::size_t obs_count = 1 + Utility::RandomInt(3);
 
@@ -216,41 +219,44 @@ void GameServer::Tick()
 					sf::Packet packet;
 					packet << static_cast<sf::Int32>(Server::PacketType::SpawnObstacle);
 					packet << static_cast<sf::Int32>(Utility::RandomInt(3));
-					packet << 650 + static_cast<float>(Utility::RandomInt(350));
+					packet << 650 + static_cast<float>(Utility::RandomInt(450));
 					packet << x_pos + 750 + static_cast<float>(Utility::RandomInt(350));
 
 					SendToAll(packet);
 				}
 
+				m_last_spawn_time = Now();
+				m_time_for_next_spawn = sf::milliseconds(1000 + Utility::RandomInt(5000));
+			}
+		}
 
-				std::size_t pickup_count = 1 + Utility::RandomInt(2);
+		if(Now() >= m_time_for_next_pickup_spawn + m_last_pickup_spawn_time && x_pos < 10500.0f)
+		{
+			std::size_t pickup_count = 1 + Utility::RandomInt(1);
 
-				//TODO Do we really need two packets here?
-				//Send a spawn packet to the clients
-				//Spawn only boosts
-				for (std::size_t i = 0; i < pickup_count; ++i)
-				{
-					sf::Packet packet;
-					packet << static_cast<sf::Int32>(Server::PacketType::SpawnPickup);
-					packet << static_cast<sf::Int32>(0);
-					packet << x_pos + 750 + +static_cast<float>(Utility::RandomInt(350));
-					packet << 750 + static_cast<float>(Utility::RandomInt(200));
-
-					SendToAll(packet);
-				}
-
-				//Spawn an invincibility
+			//Spawn only boosts
+			for (std::size_t i = 0; i < pickup_count; ++i)
+			{
 				sf::Packet packet;
 				packet << static_cast<sf::Int32>(Server::PacketType::SpawnPickup);
-				packet << static_cast<sf::Int32>(1);
-				packet << x_pos + 750 + +static_cast<float>(Utility::RandomInt(350));
+				packet << static_cast<sf::Int32>(0);
+				packet << x_pos + 750 + +static_cast<float>(Utility::RandomInt(550));
 				packet << 750 + static_cast<float>(Utility::RandomInt(200));
 
 				SendToAll(packet);
-
-				m_last_spawn_time = Now();
-				m_time_for_next_spawn = sf::milliseconds(1000 + Utility::RandomInt(4000));
 			}
+
+			//Spawn an invincibility
+			sf::Packet packet;
+			packet << static_cast<sf::Int32>(Server::PacketType::SpawnPickup);
+			packet << static_cast<sf::Int32>(1);
+			packet << x_pos + 750 + +static_cast<float>(Utility::RandomInt(750));
+			packet << 750 + static_cast<float>(Utility::RandomInt(200));
+
+			SendToAll(packet);
+
+			m_last_pickup_spawn_time = Now();
+			m_time_for_next_pickup_spawn = sf::milliseconds(2000 + Utility::RandomInt(5000));
 		}
 	}
 
