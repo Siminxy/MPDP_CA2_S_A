@@ -128,7 +128,9 @@ void World::RemoveBike(int identifier)
 Bike* World::AddBike(int identifier)
 {
 	std::unique_ptr<Bike> player(new Bike(BikeType::kRacer, m_textures, m_fonts));
-	player->setPosition(m_camera.getCenter());
+	sf::Vector2f spawn_area = m_camera.getCenter();
+	spawn_area.x = m_x_bound - m_camera.getCenter().x / 2.0f;
+	player->setPosition(spawn_area);
 	player->SetIdentifier(identifier);
 
 	m_player_bike.emplace_back(player.get());

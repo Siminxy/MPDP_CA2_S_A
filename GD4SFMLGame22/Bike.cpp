@@ -29,6 +29,7 @@ Bike::Bike(BikeType type, const TextureHolder& textures, const FontHolder& fonts
 , m_boost_ready(true)
 , m_is_marked_for_removal(false)
 , m_show_explosion(true)
+, m_set_identifier(false)
 , m_invincibility(false)
 , m_explosion_began(false)
 , m_spawned_pickup(false)
@@ -39,6 +40,7 @@ Bike::Bike(BikeType type, const TextureHolder& textures, const FontHolder& fonts
 , m_travelled_distance(0.f)
 , m_directions_index(0)
 , m_identifier(0)
+, m_color_id(0)
 {
 	m_explosion.SetFrameSize(sf::Vector2i(256, 256));
 	m_explosion.SetNumFrames(16);
@@ -266,9 +268,14 @@ void Bike::UpdateRollAnimation()
 		//Note, spritesheet is set up where this value is the neutral, aka. the middle texture
 		sf::IntRect textureRect = Table[static_cast<int>(m_type)].m_texture_rect;
 
+		if(!m_set_identifier)
+		{
+			m_color_id = m_identifier;
+			m_set_identifier = true;
+		}
 		//Changes the top distance to change bike based off identifier
 		if (m_identifier > 1)
-			textureRect.top = (30 * m_identifier) % (bike_count * 30);
+			textureRect.top = (30 * m_color_id) % (bike_count * 30);
 
 		//Sets the bike to the 'invincibility' bike
 		if (m_invincibility)

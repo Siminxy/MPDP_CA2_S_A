@@ -77,6 +77,7 @@ private:
 
 	std::vector<PeerPtr> m_peers;
 	sf::Int32 m_bike_identifier_counter;
+	float m_x_bounds;
 	bool m_waiting_thread_end;
 
 	sf::Time m_last_spawn_time;

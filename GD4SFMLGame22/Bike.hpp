@@ -70,6 +70,8 @@ private:
 	int m_directions_index;
 
 	int m_identifier;
+	int m_color_id;
+	bool m_set_identifier;
 
 	bool m_boost_ready;
 	bool m_invincibility;

@@ -36,6 +36,7 @@ GameServer::GameServer(sf::Vector2f battlefield_size)
 	, m_time_for_next_spawn(sf::seconds(5.f))
 	, m_last_pickup_spawn_time(sf::Time::Zero)
 	, m_time_for_next_pickup_spawn(sf::seconds(15.f))
+	, m_x_bounds(1500)
 {
 	m_listener_socket.setBlocking(false);
 	m_peers[0].reset(new RemotePeer());
@@ -150,6 +151,7 @@ void GameServer::ExecutionThread()
 		{
 			m_battlefield_rect.top += m_battlefield_scrollspeed * frame_rate.asSeconds();
 			frame_time -= frame_rate;
+			m_x_bounds += 3.5;
 		}
 
 		//Fixed tick step
@@ -201,36 +203,32 @@ void GameServer::Tick()
 	}
 
 	//Check if it is time to spawn obstacles and pickups
-	if(!m_bike_info.empty())
+	float x_pos = m_x_bounds;
+	//Not going to spawn enemies near the end
+	if(x_pos < 10500.0f)
 	{
-		float x_pos = m_bike_info.begin()->second.m_position.x;
-
 		if (Now() >= m_time_for_next_spawn + m_last_spawn_time)
 		{
-			//Not going to spawn enemies near the end
-			if (x_pos < 10500.0f)
+			std::size_t obs_count = 1 + Utility::RandomInt(3);
+
+			//TODO Do we really need two packets here?
+			//Send a spawn packet to the clients
+			for (std::size_t i = 0; i < obs_count; ++i)
 			{
-				std::size_t obs_count = 1 + Utility::RandomInt(3);
+				sf::Packet packet;
+				packet << static_cast<sf::Int32>(Server::PacketType::SpawnObstacle);
+				packet << static_cast<sf::Int32>(Utility::RandomInt(3));
+				packet << 650 + static_cast<float>(Utility::RandomInt(450));
+				packet << x_pos + 750 + static_cast<float>(Utility::RandomInt(350));
 
-				//TODO Do we really need two packets here?
-				//Send a spawn packet to the clients
-				for (std::size_t i = 0; i < obs_count; ++i)
-				{
-					sf::Packet packet;
-					packet << static_cast<sf::Int32>(Server::PacketType::SpawnObstacle);
-					packet << static_cast<sf::Int32>(Utility::RandomInt(3));
-					packet << 650 + static_cast<float>(Utility::RandomInt(450));
-					packet << x_pos + 750 + static_cast<float>(Utility::RandomInt(350));
-
-					SendToAll(packet);
-				}
-
-				m_last_spawn_time = Now();
-				m_time_for_next_spawn = sf::milliseconds(1000 + Utility::RandomInt(5000));
+				SendToAll(packet);
 			}
+
+			m_last_spawn_time = Now();
+			m_time_for_next_spawn = sf::milliseconds(1000 + Utility::RandomInt(5000));
 		}
 
-		if(Now() >= m_time_for_next_pickup_spawn + m_last_pickup_spawn_time && x_pos < 10500.0f)
+		if(Now() >= m_time_for_next_pickup_spawn + m_last_pickup_spawn_time)
 		{
 			std::size_t pickup_count = 1 + Utility::RandomInt(1);
 
@@ -338,7 +336,7 @@ void GameServer::HandleIncomingPacket(sf::Packet& packet, RemotePeer& receiving_
 	{
 		receiving_peer.m_bike_identifiers.emplace_back(m_bike_identifier_counter);
 		m_bike_info[m_bike_identifier_counter].m_position = m_bike_info[m_bike_identifier_counter].m_position;
-		m_bike_info[m_bike_identifier_counter].m_position.x -= 100;
+		m_bike_info[m_bike_identifier_counter].m_position.x += 100;
 		m_bike_info[m_bike_identifier_counter].m_position.y -= 100;
 		m_bike_info[m_bike_identifier_counter].m_hitpoints = 100;
 		m_bike_info[m_bike_identifier_counter].m_boost = true;
@@ -431,7 +429,7 @@ void GameServer::HandleIncomingConnections()
 	if(m_listener_socket.accept(m_peers[m_connected_players]->m_socket) == sf::TcpListener::Done)
 	{
 		//Order the new client to spawn its player 1
-		m_bike_info[m_bike_identifier_counter].m_position = sf::Vector2f(750, 650);
+		m_bike_info[m_bike_identifier_counter].m_position = sf::Vector2f(m_x_bounds - 500, 650);
 		m_bike_info[m_bike_identifier_counter].m_hitpoints = 100;
 		m_bike_info[m_bike_identifier_counter].m_boost = true;
 
