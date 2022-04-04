@@ -43,12 +43,12 @@ std::vector<PickupData> InitializePickupData()
 {
 	std::vector<PickupData> data(static_cast<int>(PickupType::kPickupCount));
 
-	data[static_cast<int>(PickupType::kInvincible)].m_texture = Textures::kSpriteSheet;
-	data[static_cast<int>(PickupType::kInvincible)].m_texture_rect = sf::IntRect(171, 122, 29, 28);
+	data[static_cast<int>(PickupType::kInvincible)].m_texture = Textures::kPickupSpriteSheet;
+	data[static_cast<int>(PickupType::kInvincible)].m_texture_rect = sf::IntRect(40, 0, 40, 40);
 	data[static_cast<int>(PickupType::kInvincible)].m_action = [](Bike& a) {a.CollectInvincibility(); };
 
-	data[static_cast<int>(PickupType::kBoostRefill)].m_texture = Textures::kSpriteSheet;
-	data[static_cast<int>(PickupType::kBoostRefill)].m_texture_rect = sf::IntRect(171, 150, 29, 28);
+	data[static_cast<int>(PickupType::kBoostRefill)].m_texture = Textures::kPickupSpriteSheet;
+	data[static_cast<int>(PickupType::kBoostRefill)].m_texture_rect = sf::IntRect(0, 0, 40, 40);
 	data[static_cast<int>(PickupType::kBoostRefill)].m_action = [](Bike& a) {a.SetBoost(true); };
 
 	return data;

@@ -9,5 +9,6 @@ enum class Textures
 	kParticle,
 	kFinishLine,
 	kSpriteSheet,
-	kBikeSpriteSheet
+	kBikeSpriteSheet,
+	kPickupSpriteSheet
 };

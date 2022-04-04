@@ -185,6 +185,7 @@ void World::LoadTextures()
 	m_textures.Load(Textures::kFinishLine, "Media/Textures/FinishLine.png");
 	m_textures.Load(Textures::kSpriteSheet, "Media/Textures/SpriteSheet.png");
 	m_textures.Load(Textures::kBikeSpriteSheet, "Media/Textures/Bikes.png");
+	m_textures.Load(Textures::kPickupSpriteSheet, "Media/Textures/PickupsV2.png");
 }
 
 void World::BuildScene()
