@@ -5,6 +5,8 @@
 
 Entity::Entity(int hitpoints)
 	: m_hitpoints(hitpoints)
+	, m_host_dead(false)
+	, m_is_host(false)
 {
 }
 
@@ -72,6 +74,26 @@ void Entity::Destroy()
 bool Entity::IsDestroyed() const
 {
 	return m_hitpoints <= 0;
+}
+
+bool Entity::IsHostDead()
+{
+	return m_host_dead;
+}
+
+bool Entity::IsHost()
+{
+	return m_is_host;
+}
+
+void Entity::SetAsHost(bool host)
+{
+	m_is_host = host;
+}
+
+void Entity::SetHostDead(bool isDead)
+{
+	m_host_dead = isDead;
 }
 
 void Entity::Remove()

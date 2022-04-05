@@ -142,6 +142,9 @@ void Bike::UpdateCurrent(sf::Time dt, CommandQueue& commands)
 	UpdateRollAnimation();
 	UpdateSpeed();
 
+	if (IsHost() && IsHostDead())
+		m_max_speed = m_speed = 0;
+
 	//Set or remove invincibility
 	if (m_invincible_counter > 0 || m_invincibility)
 	{
@@ -270,9 +273,14 @@ void Bike::UpdateRollAnimation()
 
 		if(!m_set_identifier)
 		{
+			if(m_identifier == 1)
+			{
+				SetAsHost(true);
+			}
 			m_color_id = m_identifier;
 			m_set_identifier = true;
 		}
+
 		//Changes the top distance to change bike based off identifier
 		if (m_identifier > 1)
 			textureRect.top = (30 * m_color_id) % (bike_count * 30);
@@ -348,6 +356,16 @@ void Bike::CollectInvincibility()
 	std::cout << "INVINCIBLE" << std::endl;
 	m_invincibility = true;
 	m_invincible_counter = 1;
+}
+
+void Bike::SetColorId(int colorId)
+{
+	m_color_id = colorId;
+}
+
+int Bike::GetColorId()
+{
+	return m_color_id;
 }
 
 void Bike::UseBoost()

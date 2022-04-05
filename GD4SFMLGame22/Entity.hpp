@@ -12,6 +12,11 @@ public:
 	void Accelerate(float vx, float vy);
 	sf::Vector2f GetVelocity() const;
 
+	bool IsHostDead();
+	bool IsHost();
+	void SetAsHost(bool host);
+	void SetHostDead(bool isDead);
+
 	int GetHitPoints() const;
 	void SetHitpoints(int points);
 	void Repair(unsigned int points);
@@ -26,4 +31,6 @@ protected:
 private:
 	sf::Vector2f m_velocity;
 	int m_hitpoints;
+	bool m_host_dead;
+	bool m_is_host;
 };

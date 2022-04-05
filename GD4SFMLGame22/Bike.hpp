@@ -28,7 +28,8 @@ public:
 	void IncreaseSpeed(float speed);
 	void DecreaseSpeed(float speed);
 	float GetSpeed() const;
-	//float GetOffroadResistance() const;
+	void SetColorId(int colorId);
+	int GetColorId();
 
 	bool GetBoost();
 	void CollectInvincibility();

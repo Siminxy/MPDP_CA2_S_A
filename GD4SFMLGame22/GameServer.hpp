@@ -36,6 +36,7 @@ private:
 		sf::Int32 m_hitpoints;
 		bool m_boost;
 		bool m_invincibility;
+		bool m_color_id;
 		std::map<sf::Int32, bool> m_realtime_actions;
 	};
 

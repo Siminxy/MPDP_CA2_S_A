@@ -137,6 +137,7 @@ private:
 
 	BloomEffect m_bloom_effect;
 	bool m_networked_world;
+	bool m_host_dead;
 	NetworkNode* m_network_node;
 	SpriteNode* m_finish_sprite;
 };

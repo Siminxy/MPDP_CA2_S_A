@@ -382,12 +382,14 @@ void GameServer::HandleIncomingPacket(sf::Packet& packet, RemotePeer& receiving_
 			sf::Vector2f bike_position;
 			bool boost;
 			bool invincibility;
+			int color_id;
 
-			packet >> bike_identifier >> bike_position.x >> bike_position.y >> bike_hitpoints >> boost >> invincibility;
+			packet >> bike_identifier >> bike_position.x >> bike_position.y >> bike_hitpoints >> boost >> invincibility >> color_id;
 			m_bike_info[bike_identifier].m_position = bike_position;
 			m_bike_info[bike_identifier].m_hitpoints = bike_hitpoints;
 			m_bike_info[bike_identifier].m_invincibility = invincibility;
 			m_bike_info[bike_identifier].m_boost = boost;
+			m_bike_info[bike_identifier].m_color_id = color_id;
 		}
 	}
 	break;
@@ -513,7 +515,7 @@ void GameServer::InformWorldState(sf::TcpSocket& socket)
 		{
 			for(sf::Int32 identifier : m_peers[i]->m_bike_identifiers)
 			{
-				packet << identifier << m_bike_info[identifier].m_position.x << m_bike_info[identifier].m_position.y << m_bike_info[identifier].m_hitpoints << m_bike_info[identifier].m_boost << m_bike_info[identifier].m_invincibility;
+				packet << identifier << m_bike_info[identifier].m_position.x << m_bike_info[identifier].m_position.y << m_bike_info[identifier].m_hitpoints << m_bike_info[identifier].m_boost << m_bike_info[identifier].m_invincibility << m_bike_info[identifier].m_color_id;
 			}
 		}
 	}
@@ -555,7 +557,7 @@ void GameServer::UpdateClientState()
 
 	for(const auto& bike : m_bike_info)
 	{
-		update_client_state_packet << bike.first << bike.second.m_position.x << bike.second.m_position.y << bike.second.m_hitpoints << bike.second.m_boost << bike.second.m_invincibility;
+		update_client_state_packet << bike.first << bike.second.m_position.x << bike.second.m_position.y << bike.second.m_hitpoints << bike.second.m_boost << bike.second.m_invincibility << bike.second.m_color_id;
 	}
 
 	SendToAll(update_client_state_packet);

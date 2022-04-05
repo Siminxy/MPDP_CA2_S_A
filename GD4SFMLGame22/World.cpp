@@ -32,6 +32,7 @@ World::World(sf::RenderTarget& output_target, FontHolder& font, SoundPlayer& sou
 	, m_active_enemies()
 	, m_networked_world(networked)
 	, m_network_node(nullptr)
+	, m_host_dead(false)
 	, m_finish_sprite(nullptr)
 {
 	m_scene_texture.create(m_target.getSize().x, m_target.getSize().y);
@@ -164,14 +165,18 @@ void World::SetWorldHeight(float height)
 
 bool World::HasAlivePlayer() const
 {
-	return !m_player_bike.empty();
+	if (m_player_bike.size() >= 1 && !m_host_dead)
+		return true;
+
+	return false;
 }
 
 bool World::HasPlayerReachedEnd() const
 {
 	if(Bike* aircraft = GetBike(1))
 	{
-		return !m_world_bounds.contains(aircraft->getPosition());
+		if (!aircraft->IsHostDead() && !m_world_bounds.contains(aircraft->getPosition()))
+			return true;
 	}
 	return false;
 }
@@ -546,13 +551,21 @@ void World::HandleCollisions()
 void World::DestroyEntitiesOutsideView()
 {
 	Command command;
-	command.category = Category::Type::kPlayerBike | Category::Type::kEnemyBike | Category::Type::kProjectile | Category::Type::kObstacle;
+	command.category = Category::Type::kPlayerBike | Category::Type::kObstacle;
 	command.action = DerivedAction<Entity>([this](Entity& e, sf::Time)
 	{
 		//Does the object intersect with the battlefield
 		if (!GetBattlefieldBounds().intersects(e.GetBoundingRect()))
 		{
-			e.Remove();
+			if (!e.IsHost())
+				e.Remove();
+			else
+			{
+				if(m_network_node)
+					m_host_dead = true;
+
+				e.SetHostDead(true);
+			}
 		}
 	});
 	m_command_queue.Push(command);
