@@ -9,6 +9,7 @@
 #include <iostream>
 #include <SFML/Network/Packet.hpp>
 
+
 #include "PickupType.hpp"
 
 sf::IpAddress GetAddressFromFile()
@@ -69,11 +70,32 @@ MultiplayerGameState::MultiplayerGameState(StateStack& stack, Context context, b
 	m_failed_connection_text.setString("Could not connect to the remote server");
 	Utility::CentreOrigin(m_failed_connection_text);
 
+	//lobby text
+	m_in_lobby_text.setFont(context.fonts->Get(Fonts::Main));
+	m_in_lobby_text.setString("Waiting in Lobby . . . . . . . . . . . . ");
+	m_in_lobby_text.setCharacterSize(50);
+	m_in_lobby_text.setFillColor(sf::Color::White);
+	Utility::CentreOrigin(m_in_lobby_text);
+	m_failed_connection_text.setPosition(m_window.getSize().x / 2.f, m_window.getSize().y / 2.f);
+
 	sf::IpAddress ip;
 	if(m_host)
 	{
 		m_game_server.reset(new GameServer(sf::Vector2f(m_window.getSize())));
 		ip = "127.0.0.1";
+
+
+
+		auto startButton = std::make_shared<GUI::Button>(context);
+		startButton->setPosition(m_window.getSize().x /2.f, m_window.getSize().y/2.f);
+		startButton->SetText("Start");
+		startButton->SetCallback([this]()
+			{
+				sf::Packet packet;
+				packet << static_cast<sf::Int32>(Server::PacketType::ServerStart);
+				m_socket.send(packet);
+			});
+		m_in_lobby_ui.Pack(startButton);
 	}
 	else
 	{
@@ -116,9 +138,12 @@ void MultiplayerGameState::Draw()
 	}
 	else if (m_connected & m_in_lobby)
 	{
-		m_world.Draw();
+		//m_world.Draw();
 
 		m_window.setView(m_window.getDefaultView());
+		m_window.draw(m_in_lobby_text);
+		m_window.draw(m_in_lobby_ui);
+
 
 	}
 	else
@@ -150,6 +175,7 @@ bool MultiplayerGameState::Update(sf::Time dt)
 
 				//No more players left : Mission failed
 				if(m_players.empty())
+
 				{
 					RequestStackPush(StateID::kGameOver);
 				}
@@ -555,6 +581,11 @@ void MultiplayerGameState::HandlePacket(sf::Int32 packet_type, sf::Packet& packe
 				//bike->SetInvincibility(invincibility);
 			}
 		}
+	}
+	break;
+	case Server::PacketType::ServerStart:
+	{
+		m_in_lobby = false;
 	}
 	break;
 	}

@@ -85,5 +85,7 @@ private:
 	sf::Time m_last_pickup_spawn_time;
 	sf::Time m_time_for_next_spawn;
 	sf::Time m_time_for_next_pickup_spawn;
+
+	bool m_in_lobby;
 };
 

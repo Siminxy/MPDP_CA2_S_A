@@ -1,9 +1,11 @@
 #pragma once
+#include "Container.hpp"
 #include "State.hpp"
 #include "World.hpp"
 #include "Player.hpp"
 #include "GameServer.hpp"
 #include "NetworkProtocol.hpp"
+#include "Button.hpp"
 
 class MultiplayerGameState : public State
 {
@@ -45,6 +47,8 @@ private:
 	sf::Text m_failed_connection_text;
 	sf::Clock m_failed_connection_clock;
 
+	sf::Text m_in_lobby_text;
+
 	bool m_active_state;
 	bool m_has_focus;
 	bool m_host;
@@ -52,5 +56,7 @@ private:
 	bool m_in_lobby;
 	sf::Time m_client_timeout;
 	sf::Time m_time_since_last_packet;
+
+	GUI::Container m_in_lobby_ui;
 };
 

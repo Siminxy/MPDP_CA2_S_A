@@ -37,6 +37,7 @@ GameServer::GameServer(sf::Vector2f battlefield_size)
 	, m_last_pickup_spawn_time(sf::Time::Zero)
 	, m_time_for_next_pickup_spawn(sf::seconds(15.f))
 	, m_x_bounds(1500)
+	, m_in_lobby(true)
 {
 	m_listener_socket.setBlocking(false);
 	m_peers[0].reset(new RemotePeer());
@@ -417,6 +418,22 @@ void GameServer::HandleIncomingPacket(sf::Packet& packet, RemotePeer& receiving_
 			SendToAll(packet);
 		}
 	}
+	break;
+	case Client::PacketType::PauseLobbyUpdate:
+	{
+			
+	}
+	break;
+	case Client::PacketType::ClientStart:
+	{
+		sf::Packet packet;
+		packet << static_cast<sf::Int32>(Server::PacketType::ServerStart);
+		SendToAll(packet);
+
+		m_in_lobby = false;
+	}
+	break;
+
 	}
 
 }

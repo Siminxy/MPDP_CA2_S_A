@@ -19,7 +19,8 @@ namespace Server
 		SpawnObstacle,
 		SpawnSelf,
 		UpdateClientState,
-		MissionSuccess
+		MissionSuccess,
+		ServerStart
 	};
 }
 
@@ -34,7 +35,8 @@ namespace Client
 		PositionUpdate,
 		GameEvent,
 		Quit,
-		PauseLobbyUpdate
+		PauseLobbyUpdate,
+		ClientStart
 	};
 }
 
