@@ -33,7 +33,8 @@ namespace Client
 		RequestCoopPartner,
 		PositionUpdate,
 		GameEvent,
-		Quit
+		Quit,
+		PauseLobbyUpdate
 	};
 }
 

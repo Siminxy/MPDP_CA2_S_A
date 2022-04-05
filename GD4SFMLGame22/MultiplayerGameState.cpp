@@ -43,6 +43,7 @@ MultiplayerGameState::MultiplayerGameState(StateStack& stack, Context context, b
 , m_game_started(false)
 , m_client_timeout(sf::seconds(2.f))
 , m_time_since_last_packet(sf::seconds(0.f))
+, m_in_lobby(true)
 {
 	m_broadcast_text.setFont(context.fonts->Get(Fonts::Main));
 	m_broadcast_text.setPosition(1024.f - 200.f, 600.f);
@@ -96,7 +97,7 @@ MultiplayerGameState::MultiplayerGameState(StateStack& stack, Context context, b
 
 void MultiplayerGameState::Draw()
 {
-	if(m_connected)
+	if(m_connected&!m_in_lobby)
 	{
 		m_world.Draw();
 
@@ -113,6 +114,13 @@ void MultiplayerGameState::Draw()
 			m_window.draw(m_player_invitation_text);
 		}
 	}
+	else if (m_connected & m_in_lobby)
+	{
+		m_world.Draw();
+
+		m_window.setView(m_window.getDefaultView());
+
+	}
 	else
 	{
 		m_window.draw(m_failed_connection_text);
@@ -122,7 +130,7 @@ void MultiplayerGameState::Draw()
 bool MultiplayerGameState::Update(sf::Time dt)
 {
 	//Connected to the Server: Handle all the network logic
-	if(m_connected)
+	if(m_connected & !m_in_lobby)
 	{
 		m_world.Update(dt);
 
@@ -233,6 +241,28 @@ bool MultiplayerGameState::Update(sf::Time dt)
 				}
 			}
 			m_socket.send(position_update_packet);
+			m_tick_clock.restart();
+		}
+		m_time_since_last_packet += dt;
+	}
+
+	else if(m_connected & m_in_lobby)
+	{
+		if (m_tick_clock.getElapsedTime() > sf::seconds(1.f / 20.f))
+		{
+			sf::Packet pause_update_packet;
+			pause_update_packet << static_cast<sf::Int32>(Client::PacketType::PauseLobbyUpdate);
+			pause_update_packet << static_cast<sf::Int32>(m_local_player_identifiers.size());
+
+			for (sf::Int32 identifier : m_local_player_identifiers)
+			{
+				if (Bike* bike = m_world.GetBike(identifier))
+				{
+					pause_update_packet << identifier;
+					//pause_update_packet << identifier << bike->getPosition().x << bike->getPosition().y << static_cast<sf::Int32>(bike->GetHitPoints()) << bike->GetBoost() << bike->GetInvincibility();
+				}
+			}
+			m_socket.send(pause_update_packet);
 			m_tick_clock.restart();
 		}
 		m_time_since_last_packet += dt;

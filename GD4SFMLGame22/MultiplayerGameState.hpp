@@ -49,6 +49,7 @@ private:
 	bool m_has_focus;
 	bool m_host;
 	bool m_game_started;
+	bool m_in_lobby;
 	sf::Time m_client_timeout;
 	sf::Time m_time_since_last_packet;
 };
