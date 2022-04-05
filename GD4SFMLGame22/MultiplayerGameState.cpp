@@ -595,8 +595,13 @@ void MultiplayerGameState::HandlePacket(sf::Int32 packet_type, sf::Packet& packe
 	break;
 	case Server::PacketType::ServerStart:
 	{
-		m_in_lobby = false;
+		
 
+		sf::Packet packet;
+		packet << static_cast<sf::Int32>(Client::PacketType::ClientStart);
+		m_socket.send(packet);
+
+		m_in_lobby = false;
 	}
 	break;
 	}
