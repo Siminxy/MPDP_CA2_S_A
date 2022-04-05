@@ -122,9 +122,9 @@ MultiplayerGameState::MultiplayerGameState(StateStack& stack, Context context, b
 
 void MultiplayerGameState::Draw()
 {
-	if(m_connected&!m_in_lobby)
+	if(m_connected && !m_in_lobby)
 	{
-		m_world.Draw();
+		//m_world.Draw();
 
 		//Show broadcast messages in default view
 		m_window.setView(m_window.getDefaultView());
@@ -139,9 +139,9 @@ void MultiplayerGameState::Draw()
 			m_window.draw(m_player_invitation_text);
 		}
 	}
-	else if (m_connected & m_in_lobby)
+	else if (m_connected && m_in_lobby)
 	{
-		//m_world.Draw();
+		m_world.Draw();
 
 		m_window.setView(m_window.getDefaultView());
 		m_window.draw(m_in_lobby_text);
@@ -158,7 +158,7 @@ void MultiplayerGameState::Draw()
 bool MultiplayerGameState::Update(sf::Time dt)
 {
 	//Connected to the Server: Handle all the network logic
-	if(m_connected & !m_in_lobby)
+	if(m_connected && !m_in_lobby)
 	{
 		m_world.Update(dt);
 
@@ -275,7 +275,7 @@ bool MultiplayerGameState::Update(sf::Time dt)
 		m_time_since_last_packet += dt;
 	}
 
-	else if(m_connected & m_in_lobby)
+	else if(m_connected && m_in_lobby)
 	{
 		if (m_tick_clock.getElapsedTime() > sf::seconds(1.f / 20.f))
 		{
@@ -294,7 +294,7 @@ bool MultiplayerGameState::Update(sf::Time dt)
 			m_socket.send(pause_update_packet);
 			m_tick_clock.restart();
 		}
-		m_time_since_last_packet += dt;
+		//m_time_since_last_packet += dt;
 	}
 
 	//Failed to connect and waited for more than 5 seconds: Back to menu
