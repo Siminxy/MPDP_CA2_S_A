@@ -78,6 +78,7 @@ MultiplayerGameState::MultiplayerGameState(StateStack& stack, Context context, b
 	Utility::CentreOrigin(m_in_lobby_text);
 	m_failed_connection_text.setPosition(m_window.getSize().x / 2.f, m_window.getSize().y / 2.f);
 
+
 	sf::IpAddress ip;
 	if(m_host)
 	{
@@ -92,9 +93,11 @@ MultiplayerGameState::MultiplayerGameState(StateStack& stack, Context context, b
 		startButton->SetCallback([this]()
 			{
 				sf::Packet packet;
-				packet << static_cast<sf::Int32>(Server::PacketType::ServerStart);
+				packet << static_cast<sf::Int32>(Client::PacketType::ClientStart);
 				m_socket.send(packet);
+				//m_in_lobby = false;
 			});
+
 		m_in_lobby_ui.Pack(startButton);
 	}
 	else
@@ -586,6 +589,7 @@ void MultiplayerGameState::HandlePacket(sf::Int32 packet_type, sf::Packet& packe
 	case Server::PacketType::ServerStart:
 	{
 		m_in_lobby = false;
+
 	}
 	break;
 	}
