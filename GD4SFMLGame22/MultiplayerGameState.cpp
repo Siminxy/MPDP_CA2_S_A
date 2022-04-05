@@ -308,6 +308,11 @@ bool MultiplayerGameState::Update(sf::Time dt)
 
 bool MultiplayerGameState::HandleEvent(const sf::Event& event)
 {
+	if(m_in_lobby)
+	{
+		m_in_lobby_ui.HandleEvent(event);
+	}
+
 	//Game input handling
 	CommandQueue& commands = m_world.GetCommandQueue();
 
