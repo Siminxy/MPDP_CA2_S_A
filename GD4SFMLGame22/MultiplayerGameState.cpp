@@ -124,7 +124,7 @@ void MultiplayerGameState::Draw()
 {
 	if(m_connected && !m_in_lobby)
 	{
-		//m_world.Draw();
+		m_world.Draw();
 
 		//Show broadcast messages in default view
 		m_window.setView(m_window.getDefaultView());
@@ -277,7 +277,7 @@ bool MultiplayerGameState::Update(sf::Time dt)
 
 	else if(m_connected && m_in_lobby)
 	{
-		if (m_tick_clock.getElapsedTime() > sf::seconds(1.f / 20.f))
+		if (m_tick_clock.getElapsedTime() > sf::seconds(10.f / 20.f))
 		{
 			sf::Packet pause_update_packet;
 			pause_update_packet << static_cast<sf::Int32>(Client::PacketType::PauseLobbyUpdate);
@@ -312,6 +312,7 @@ bool MultiplayerGameState::HandleEvent(const sf::Event& event)
 	{
 		m_in_lobby_ui.HandleEvent(event);
 	}
+	else{
 
 	//Game input handling
 	CommandQueue& commands = m_world.GetCommandQueue();
@@ -345,6 +346,7 @@ bool MultiplayerGameState::HandleEvent(const sf::Event& event)
 	else if(event.type == sf::Event::LostFocus)
 	{
 		m_has_focus = false;
+	}
 	}
 	return true;
 }
