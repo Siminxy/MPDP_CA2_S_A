@@ -175,8 +175,12 @@ bool World::HasPlayerReachedEnd() const
 {
 	if(Bike* aircraft = GetBike(1))
 	{
-		if (!aircraft->IsHostDead() && !m_world_bounds.contains(aircraft->getPosition()))
+		if (!m_world_bounds.contains(aircraft->getPosition()))
+		{
+			if (aircraft->IsHost() && aircraft->IsHostDead())
+				return false;
 			return true;
+		}
 	}
 	return false;
 }
