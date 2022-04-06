@@ -76,7 +76,8 @@ MultiplayerGameState::MultiplayerGameState(StateStack& stack, Context context, b
 	m_in_lobby_text.setCharacterSize(50);
 	m_in_lobby_text.setFillColor(sf::Color::White);
 	Utility::CentreOrigin(m_in_lobby_text);
-	m_failed_connection_text.setPosition(m_window.getSize().x / 2.f, m_window.getSize().y / 2.f);
+	//m_failed_connection_text.setPosition(m_window.getSize().x / 3.f, m_window.getSize().y / 3.f);
+	m_in_lobby_text.setPosition(m_failed_connection_text.getPosition());
 
 
 	sf::IpAddress ip;
@@ -85,20 +86,27 @@ MultiplayerGameState::MultiplayerGameState(StateStack& stack, Context context, b
 		m_game_server.reset(new GameServer(sf::Vector2f(m_window.getSize())));
 		ip = "127.0.0.1";
 
-
-
 		auto startButton = std::make_shared<GUI::Button>(context);
-		startButton->setPosition(m_window.getSize().x /2.f, m_window.getSize().y/2.f);
+		startButton->setPosition(m_window.getSize().x /2.f, m_window.getSize().y/3.f);
 		startButton->SetText("Start");
 		startButton->SetCallback([this]()
 			{
 				sf::Packet packet;
-				packet << static_cast<sf::Int32>(Server::PacketType::ServerStart);
+				packet << static_cast<sf::Int32>(Client::PacketType::ClientStart);
 				m_socket.send(packet);
-				m_in_lobby = false;
+			});
+
+		auto backToMenuButton = std::make_shared<GUI::Button>(context);
+		backToMenuButton->setPosition(m_window.getSize().x / 2.f, m_window.getSize().y / 3.f + 50);
+		backToMenuButton->SetText("Back to menu");
+		backToMenuButton->SetCallback([this]()
+			{
+				RequestStackClear();
+				RequestStackPush(StateID::kMenu);
 			});
 
 		m_in_lobby_ui.Pack(startButton);
+		m_in_lobby_ui.Pack(backToMenuButton);
 	}
 	else
 	{
@@ -149,7 +157,6 @@ void MultiplayerGameState::Draw()
 				m_window.draw(m_player_invitation_text);
 			}
 		}
-
 	}
 	
 	else
