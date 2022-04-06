@@ -122,33 +122,36 @@ MultiplayerGameState::MultiplayerGameState(StateStack& stack, Context context, b
 
 void MultiplayerGameState::Draw()
 {
-	if(m_connected && !m_in_lobby)
+	if(m_connected)
 	{
-		m_world.Draw();
-
 		//Show broadcast messages in default view
 		m_window.setView(m_window.getDefaultView());
-
-		if(!m_broadcasts.empty())
+		if (m_in_lobby)
 		{
-			m_window.draw(m_broadcast_text);
+			//m_world.Draw();
+
+
+			m_window.draw(m_in_lobby_text);
+			m_window.draw(m_in_lobby_ui);
+
+		}
+		else if (!m_in_lobby)
+		{
+			m_world.Draw();
+
+			if (!m_broadcasts.empty())
+			{
+				m_window.draw(m_broadcast_text);
+			}
+
+			if (m_local_player_identifiers.size() < 2 && m_player_invitation_time < sf::seconds(0.5f))
+			{
+				m_window.draw(m_player_invitation_text);
+			}
 		}
 
-		if(m_local_player_identifiers.size() < 2 && m_player_invitation_time < sf::seconds(0.5f))
-		{
-			m_window.draw(m_player_invitation_text);
-		}
 	}
-	else if (m_connected && m_in_lobby)
-	{
-		m_world.Draw();
-
-		m_window.setView(m_window.getDefaultView());
-		m_window.draw(m_in_lobby_text);
-		m_window.draw(m_in_lobby_ui);
-
-
-	}
+	
 	else
 	{
 		m_window.draw(m_failed_connection_text);
@@ -160,7 +163,32 @@ bool MultiplayerGameState::Update(sf::Time dt)
 	//Connected to the Server: Handle all the network logic
 	if (m_connected)
 	{
-		if (!m_in_lobby)
+		if (m_in_lobby)
+		{
+			CheckPacket();
+
+			if (m_tick_clock.getElapsedTime() > sf::seconds(1.f / 20.f))
+			{
+				sf::Packet pause_update_packet;
+				pause_update_packet << static_cast<sf::Int32>(Client::PacketType::PauseLobbyUpdate);
+				pause_update_packet << static_cast<sf::Int32>(m_local_player_identifiers.size());
+
+				for (sf::Int32 identifier : m_local_player_identifiers)
+				{
+					if (Bike* bike = m_world.GetBike(identifier))
+					{
+						pause_update_packet << identifier;
+						//pause_update_packet << identifier << bike->getPosition().x << bike->getPosition().y << static_cast<sf::Int32>(bike->GetHitPoints()) << bike->GetBoost() << bike->GetInvincibility();
+					}
+				}
+				m_socket.send(pause_update_packet);
+				m_tick_clock.restart();
+			}
+			m_time_since_last_packet += dt;
+
+
+		}
+		else if (!m_in_lobby)
 		{
 			m_world.Update(dt);
 
@@ -255,32 +283,6 @@ bool MultiplayerGameState::Update(sf::Time dt)
 				m_tick_clock.restart();
 			}
 			m_time_since_last_packet += dt;
-		}
-
-		else if (m_in_lobby)
-		{
-			CheckPacket();
-
-			if (m_tick_clock.getElapsedTime() > sf::seconds(1.f / 20.f))
-			{
-				sf::Packet pause_update_packet;
-				pause_update_packet << static_cast<sf::Int32>(Client::PacketType::PauseLobbyUpdate);
-				pause_update_packet << static_cast<sf::Int32>(m_local_player_identifiers.size());
-
-				for (sf::Int32 identifier : m_local_player_identifiers)
-				{
-					if (Bike* bike = m_world.GetBike(identifier))
-					{
-						pause_update_packet << identifier;
-						//pause_update_packet << identifier << bike->getPosition().x << bike->getPosition().y << static_cast<sf::Int32>(bike->GetHitPoints()) << bike->GetBoost() << bike->GetInvincibility();
-					}
-				}
-				m_socket.send(pause_update_packet);
-				m_tick_clock.restart();
-			}
-			m_time_since_last_packet += dt;
-
-
 		}
 	}
 
@@ -608,12 +610,6 @@ void MultiplayerGameState::HandlePacket(sf::Int32 packet_type, sf::Packet& packe
 	break;
 	case Server::PacketType::ServerStart:
 	{
-		//
-
-		//sf::Packet packet;
-		//packet << static_cast<sf::Int32>(Client::PacketType::ClientStart);
-		//m_socket.send(packet);
-
 		m_in_lobby = false;
 	}
 	break;
