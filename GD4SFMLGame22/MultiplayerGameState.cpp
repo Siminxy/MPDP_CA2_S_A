@@ -277,7 +277,7 @@ bool MultiplayerGameState::Update(sf::Time dt)
 
 	else if(m_connected && m_in_lobby)
 	{
-		if (m_tick_clock.getElapsedTime() > sf::seconds(10.f / 20.f))
+		if (m_tick_clock.getElapsedTime() > sf::seconds(1.f / 20.f))
 		{
 			sf::Packet pause_update_packet;
 			pause_update_packet << static_cast<sf::Int32>(Client::PacketType::PauseLobbyUpdate);
@@ -308,7 +308,7 @@ bool MultiplayerGameState::Update(sf::Time dt)
 
 bool MultiplayerGameState::HandleEvent(const sf::Event& event)
 {
-	if(m_in_lobby)
+	if(m_in_lobby && m_host)
 	{
 		m_in_lobby_ui.HandleEvent(event);
 	}
@@ -595,11 +595,11 @@ void MultiplayerGameState::HandlePacket(sf::Int32 packet_type, sf::Packet& packe
 	break;
 	case Server::PacketType::ServerStart:
 	{
-		
+		//
 
-		sf::Packet packet;
-		packet << static_cast<sf::Int32>(Client::PacketType::ClientStart);
-		m_socket.send(packet);
+		//sf::Packet packet;
+		//packet << static_cast<sf::Int32>(Client::PacketType::ClientStart);
+		//m_socket.send(packet);
 
 		m_in_lobby = false;
 	}
