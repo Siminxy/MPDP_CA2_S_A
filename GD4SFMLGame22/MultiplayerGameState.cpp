@@ -90,7 +90,7 @@ MultiplayerGameState::MultiplayerGameState(StateStack& stack, Context context, b
 	sf::IpAddress ip;
 	if(m_host)
 	{
-		++m_player_count;
+		//++m_player_count;
 		m_game_server.reset(new GameServer(sf::Vector2f(m_window.getSize())));
 		ip = "127.0.0.1";
 
@@ -482,7 +482,7 @@ void MultiplayerGameState::HandlePacket(sf::Int32 packet_type, sf::Packet& packe
 		bike->setPosition(bike_position);
 		m_players[bike_identifier].reset(new Player(&m_socket, bike_identifier, nullptr));
 
-		++m_player_count;
+		//++m_player_count;
 	}
 	break;
 
@@ -493,7 +493,7 @@ void MultiplayerGameState::HandlePacket(sf::Int32 packet_type, sf::Packet& packe
 		m_world.RemoveBike(bike_identifier);
 		m_players.erase(bike_identifier);
 
-		--m_player_count;
+		//--m_player_count;
 	}
 	break;
 
@@ -639,5 +639,11 @@ void MultiplayerGameState::HandlePacket(sf::Int32 packet_type, sf::Packet& packe
 		m_in_lobby = false;
 	}
 	break;
+	case Server::PacketType::PlayerCountUpdate:
+		{
+		sf::Int32 player_count;
+		packet >> player_count;
+		m_player_count = player_count;
+		}
 	}
 }

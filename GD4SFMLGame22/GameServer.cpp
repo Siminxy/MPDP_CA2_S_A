@@ -421,7 +421,10 @@ void GameServer::HandleIncomingPacket(sf::Packet& packet, RemotePeer& receiving_
 	break;
 	case Client::PacketType::PauseLobbyUpdate:
 	{
-			
+		sf::Packet packet;
+		packet << static_cast<sf::Int32>(Server::PacketType::PlayerCountUpdate);
+		packet << m_connected_players;
+		SendToAll(packet);
 	}
 	break;
 	case Client::PacketType::ClientStart:
