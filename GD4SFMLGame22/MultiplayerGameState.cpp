@@ -93,9 +93,9 @@ MultiplayerGameState::MultiplayerGameState(StateStack& stack, Context context, b
 		startButton->SetCallback([this]()
 			{
 				sf::Packet packet;
-				packet << static_cast<sf::Int32>(Server::PacketType::ServerStart);
+				packet << static_cast<sf::Int32>(Client::PacketType::ClientStart);
 				m_socket.send(packet);
-				m_in_lobby = false;
+				//m_in_lobby = false;
 			});
 
 		m_in_lobby_ui.Pack(startButton);
