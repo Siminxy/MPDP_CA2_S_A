@@ -17,6 +17,7 @@ public:
 	virtual void OnActivate();
 	void OnDestroy();
 	void DisableAllRealtimeActions();
+	void CheckPacket();
 
 private:
 	void UpdateBroadcastMessage(sf::Time elapsed_time);
