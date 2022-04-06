@@ -277,6 +277,28 @@ bool MultiplayerGameState::Update(sf::Time dt)
 
 	else if(m_connected && m_in_lobby)
 	{
+		//Handle messages from the server that may have arrived
+		sf::Packet packet;
+		if (m_socket.receive(packet) == sf::Socket::Done)
+		{
+			m_time_since_last_packet = sf::seconds(0.f);
+			sf::Int32 packet_type;
+			packet >> packet_type;
+			HandlePacket(packet_type, packet);
+		}
+		else
+		{
+			//Check for timeout with the server
+			if (m_time_since_last_packet > m_client_timeout)
+			{
+				m_connected = false;
+				m_failed_connection_text.setString("Lost connection to the server");
+				Utility::CentreOrigin(m_failed_connection_text);
+
+				m_failed_connection_clock.restart();
+			}
+		}
+
 		if (m_tick_clock.getElapsedTime() > sf::seconds(1.f / 20.f))
 		{
 			sf::Packet pause_update_packet;
@@ -294,7 +316,9 @@ bool MultiplayerGameState::Update(sf::Time dt)
 			m_socket.send(pause_update_packet);
 			m_tick_clock.restart();
 		}
-		//m_time_since_last_packet += dt;
+		m_time_since_last_packet += dt;
+
+
 	}
 
 	//Failed to connect and waited for more than 5 seconds: Back to menu
