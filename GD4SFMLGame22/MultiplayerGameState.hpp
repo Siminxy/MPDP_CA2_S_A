@@ -18,6 +18,7 @@ public:
 	void OnDestroy();
 	void DisableAllRealtimeActions();
 	void CheckPacket();
+	void UpdatePlayerCountConnected(sf::Time dt);
 
 private:
 	void UpdateBroadcastMessage(sf::Time elapsed_time);
@@ -49,6 +50,7 @@ private:
 	sf::Clock m_failed_connection_clock;
 
 	sf::Text m_in_lobby_text;
+	sf::Text m_in_lobby_player_count_text;
 
 	bool m_active_state;
 	bool m_has_focus;
@@ -59,5 +61,7 @@ private:
 	sf::Time m_time_since_last_packet;
 
 	GUI::Container m_in_lobby_ui;
+
+	int m_player_count;
 };
 

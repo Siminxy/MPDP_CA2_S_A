@@ -45,6 +45,7 @@ MultiplayerGameState::MultiplayerGameState(StateStack& stack, Context context, b
 , m_client_timeout(sf::seconds(2.f))
 , m_time_since_last_packet(sf::seconds(0.f))
 , m_in_lobby(true)
+, m_player_count(0)
 {
 	m_broadcast_text.setFont(context.fonts->Get(Fonts::Main));
 	m_broadcast_text.setPosition(1024.f - 200.f, 600.f);
@@ -76,13 +77,20 @@ MultiplayerGameState::MultiplayerGameState(StateStack& stack, Context context, b
 	m_in_lobby_text.setCharacterSize(50);
 	m_in_lobby_text.setFillColor(sf::Color::White);
 	Utility::CentreOrigin(m_in_lobby_text);
-	//m_failed_connection_text.setPosition(m_window.getSize().x / 3.f, m_window.getSize().y / 3.f);
 	m_in_lobby_text.setPosition(m_failed_connection_text.getPosition());
 
+	//player count text
+	m_in_lobby_player_count_text.setFont(context.fonts->Get(Fonts::Main));
+	m_in_lobby_player_count_text.setString("Player Connected : " + std::to_string(m_player_count) );
+	m_in_lobby_player_count_text.setCharacterSize(20);
+	m_in_lobby_player_count_text.setFillColor(sf::Color::White);
+	Utility::CentreOrigin(m_in_lobby_player_count_text);
+	m_in_lobby_player_count_text.setPosition(m_failed_connection_text.getPosition().x, m_failed_connection_text.getPosition().y+50);
 
 	sf::IpAddress ip;
 	if(m_host)
 	{
+		++m_player_count;
 		m_game_server.reset(new GameServer(sf::Vector2f(m_window.getSize())));
 		ip = "127.0.0.1";
 
@@ -140,6 +148,7 @@ void MultiplayerGameState::Draw()
 
 
 			m_window.draw(m_in_lobby_text);
+			m_window.draw(m_in_lobby_player_count_text);
 			m_window.draw(m_in_lobby_ui);
 
 		}
@@ -173,6 +182,7 @@ bool MultiplayerGameState::Update(sf::Time dt)
 		if (m_in_lobby)
 		{
 			CheckPacket();
+			UpdatePlayerCountConnected(dt);
 
 			if (m_tick_clock.getElapsedTime() > sf::seconds(1.f / 20.f))
 			{
@@ -249,7 +259,6 @@ bool MultiplayerGameState::Update(sf::Time dt)
 			}
 
 			CheckPacket();
-
 			UpdateBroadcastMessage(dt);
 
 			//Time counter fro blinking second player text
@@ -301,6 +310,12 @@ bool MultiplayerGameState::Update(sf::Time dt)
 	}
 	return true;
 }
+
+void MultiplayerGameState::UpdatePlayerCountConnected(sf::Time dt)
+{
+	m_in_lobby_player_count_text.setString("Player Connected : " + std::to_string(m_player_count));
+}
+
 
 void MultiplayerGameState::CheckPacket()
 {
@@ -466,6 +481,8 @@ void MultiplayerGameState::HandlePacket(sf::Int32 packet_type, sf::Packet& packe
 		Bike* bike = m_world.AddBike(bike_identifier);
 		bike->setPosition(bike_position);
 		m_players[bike_identifier].reset(new Player(&m_socket, bike_identifier, nullptr));
+
+		++m_player_count;
 	}
 	break;
 
@@ -475,6 +492,8 @@ void MultiplayerGameState::HandlePacket(sf::Int32 packet_type, sf::Packet& packe
 		packet >> bike_identifier;
 		m_world.RemoveBike(bike_identifier);
 		m_players.erase(bike_identifier);
+
+		--m_player_count;
 	}
 	break;
 
