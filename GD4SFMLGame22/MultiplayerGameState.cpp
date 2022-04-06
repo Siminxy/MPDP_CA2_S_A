@@ -9,6 +9,7 @@
 #include <iostream>
 #include <SFML/Network/Packet.hpp>
 
+
 #include "PickupType.hpp"
 
 sf::IpAddress GetAddressFromFile()
@@ -43,6 +44,7 @@ MultiplayerGameState::MultiplayerGameState(StateStack& stack, Context context, b
 , m_game_started(false)
 , m_client_timeout(sf::seconds(2.f))
 , m_time_since_last_packet(sf::seconds(0.f))
+, m_in_lobby(true)
 {
 	m_broadcast_text.setFont(context.fonts->Get(Fonts::Main));
 	m_broadcast_text.setPosition(1024.f - 200.f, 600.f);
@@ -68,11 +70,35 @@ MultiplayerGameState::MultiplayerGameState(StateStack& stack, Context context, b
 	m_failed_connection_text.setString("Could not connect to the remote server");
 	Utility::CentreOrigin(m_failed_connection_text);
 
+	//lobby text
+	m_in_lobby_text.setFont(context.fonts->Get(Fonts::Main));
+	m_in_lobby_text.setString("Waiting in Lobby . . . . . . . . . . . . ");
+	m_in_lobby_text.setCharacterSize(50);
+	m_in_lobby_text.setFillColor(sf::Color::White);
+	Utility::CentreOrigin(m_in_lobby_text);
+	m_failed_connection_text.setPosition(m_window.getSize().x / 2.f, m_window.getSize().y / 2.f);
+
+
 	sf::IpAddress ip;
 	if(m_host)
 	{
 		m_game_server.reset(new GameServer(sf::Vector2f(m_window.getSize())));
 		ip = "127.0.0.1";
+
+
+
+		auto startButton = std::make_shared<GUI::Button>(context);
+		startButton->setPosition(m_window.getSize().x /2.f, m_window.getSize().y/2.f);
+		startButton->SetText("Start");
+		startButton->SetCallback([this]()
+			{
+				sf::Packet packet;
+				packet << static_cast<sf::Int32>(Server::PacketType::ServerStart);
+				m_socket.send(packet);
+				m_in_lobby = false;
+			});
+
+		m_in_lobby_ui.Pack(startButton);
 	}
 	else
 	{
@@ -98,21 +124,34 @@ void MultiplayerGameState::Draw()
 {
 	if(m_connected)
 	{
-		m_world.Draw();
-
 		//Show broadcast messages in default view
 		m_window.setView(m_window.getDefaultView());
-
-		if(!m_broadcasts.empty())
+		if (m_in_lobby)
 		{
-			m_window.draw(m_broadcast_text);
+			//m_world.Draw();
+
+
+			m_window.draw(m_in_lobby_text);
+			m_window.draw(m_in_lobby_ui);
+
+		}
+		else if (!m_in_lobby)
+		{
+			m_world.Draw();
+
+			if (!m_broadcasts.empty())
+			{
+				m_window.draw(m_broadcast_text);
+			}
+
+			if (m_local_player_identifiers.size() < 2 && m_player_invitation_time < sf::seconds(0.5f))
+			{
+				m_window.draw(m_player_invitation_text);
+			}
 		}
 
-		if(m_local_player_identifiers.size() < 2 && m_player_invitation_time < sf::seconds(0.5f))
-		{
-			m_window.draw(m_player_invitation_text);
-		}
 	}
+	
 	else
 	{
 		m_window.draw(m_failed_connection_text);
@@ -122,120 +161,129 @@ void MultiplayerGameState::Draw()
 bool MultiplayerGameState::Update(sf::Time dt)
 {
 	//Connected to the Server: Handle all the network logic
-	if(m_connected)
+	if (m_connected)
 	{
-		m_world.Update(dt);
-
-		//Remove players whose aircraft were destroyed
-		bool found_local_bike = false;
-		for(auto itr = m_players.begin(); itr != m_players.end();)
+		if (m_in_lobby)
 		{
-			//Check if there are no more local planes for remote clients
-			if(std::find(m_local_player_identifiers.begin(), m_local_player_identifiers.end(), itr->first) != m_local_player_identifiers.end())
-			{
-				found_local_bike = true;
-			}
+			CheckPacket();
 
-			if(!m_world.GetBike(itr->first))
+			if (m_tick_clock.getElapsedTime() > sf::seconds(1.f / 20.f))
 			{
-				itr = m_players.erase(itr);
+				sf::Packet pause_update_packet;
+				pause_update_packet << static_cast<sf::Int32>(Client::PacketType::PauseLobbyUpdate);
+				pause_update_packet << static_cast<sf::Int32>(m_local_player_identifiers.size());
 
-				//No more players left : Mission failed
-				if(m_players.empty())
+				for (sf::Int32 identifier : m_local_player_identifiers)
 				{
-					RequestStackPush(StateID::kGameOver);
+					if (Bike* bike = m_world.GetBike(identifier))
+					{
+						pause_update_packet << identifier;
+						//pause_update_packet << identifier << bike->getPosition().x << bike->getPosition().y << static_cast<sf::Int32>(bike->GetHitPoints()) << bike->GetBoost() << bike->GetInvincibility();
+					}
+				}
+				m_socket.send(pause_update_packet);
+				m_tick_clock.restart();
+			}
+			m_time_since_last_packet += dt;
+
+
+		}
+		else if (!m_in_lobby)
+		{
+			m_world.Update(dt);
+
+			//Remove players whose aircraft were destroyed
+			bool found_local_bike = false;
+			for (auto itr = m_players.begin(); itr != m_players.end();)
+			{
+				//Check if there are no more local planes for remote clients
+				if (std::find(m_local_player_identifiers.begin(), m_local_player_identifiers.end(), itr->first) != m_local_player_identifiers.end())
+				{
+					found_local_bike = true;
+				}
+
+				if (!m_world.GetBike(itr->first))
+				{
+					itr = m_players.erase(itr);
+
+					//No more players left : Mission failed
+					if (m_players.empty())
+
+					{
+						RequestStackPush(StateID::kGameOver);
+					}
+				}
+				else
+				{
+					++itr;
 				}
 			}
-			else
+
+			if (!found_local_bike && m_game_started)
 			{
-				++itr;
+				RequestStackPush(StateID::kGameOver);
 			}
-		}
 
-		if(!found_local_bike && m_game_started)
-		{
-			RequestStackPush(StateID::kGameOver);
-		}
+			//Only handle the realtime input if the window has focus and the game is unpaused
+			if (m_active_state && m_has_focus)
+			{
+				CommandQueue& commands = m_world.GetCommandQueue();
+				for (auto& pair : m_players)
+				{
+					pair.second->HandleRealtimeInput(commands);
+				}
+			}
 
-		//Only handle the realtime input if the window has focus and the game is unpaused
-		if(m_active_state && m_has_focus)
-		{
+			//Always handle the network input
 			CommandQueue& commands = m_world.GetCommandQueue();
-			for(auto& pair : m_players)
+			for (auto& pair : m_players)
 			{
-				pair.second->HandleRealtimeInput(commands);
+				pair.second->HandleRealtimeNetworkInput(commands);
 			}
-		}
 
-		//Always handle the network input
-		CommandQueue& commands = m_world.GetCommandQueue();
-		for(auto& pair : m_players)
-		{
-			pair.second->HandleRealtimeNetworkInput(commands);
-		}
+			CheckPacket();
 
-		//Handle messages from the server that may have arrived
-		sf::Packet packet;
-		if(m_socket.receive(packet) == sf::Socket::Done)
-		{
-			m_time_since_last_packet = sf::seconds(0.f);
-			sf::Int32 packet_type;
-			packet >> packet_type;
-			HandlePacket(packet_type, packet);
-		}
-		else
-		{
-			//Check for timeout with the server
-			if(m_time_since_last_packet > m_client_timeout)
+			UpdateBroadcastMessage(dt);
+
+			//Time counter fro blinking second player text
+			m_player_invitation_time += dt;
+			if (m_player_invitation_time > sf::seconds(1.f))
 			{
-				m_connected = false;
-				m_failed_connection_text.setString("Lost connection to the server");
-				Utility::CentreOrigin(m_failed_connection_text);
-
-				m_failed_connection_clock.restart();
+				m_player_invitation_time = sf::Time::Zero;
 			}
-		}
 
-		UpdateBroadcastMessage(dt);
-
-		//Time counter fro blinking second player text
-		m_player_invitation_time += dt;
-		if(m_player_invitation_time > sf::seconds(1.f))
-		{
-			m_player_invitation_time = sf::Time::Zero;
-		}
-
-		//Events occurring in the game
-		GameActions::Action game_action;
-		while(m_world.PollGameAction(game_action))
-		{
-			sf::Packet packet;
-			packet << static_cast<sf::Int32>(Client::PacketType::GameEvent);
-			packet << static_cast<sf::Int32>(game_action.type);
-			packet << game_action.position.x;
-			packet << game_action.position.y;
-
-			m_socket.send(packet);
-		}
-
-		//Regular position updates
-		if(m_tick_clock.getElapsedTime() > sf::seconds(1.f/20.f))
-		{
-			sf::Packet position_update_packet;
-			position_update_packet << static_cast<sf::Int32>(Client::PacketType::PositionUpdate);
-			position_update_packet << static_cast<sf::Int32>(m_local_player_identifiers.size());
-
-			for(sf::Int32 identifier : m_local_player_identifiers)
+			//Events occurring in the game
+			GameActions::Action game_action;
+			while (m_world.PollGameAction(game_action))
 			{
-				if(Bike* bike = m_world.GetBike(identifier))
+				sf::Packet packet;
+				packet << static_cast<sf::Int32>(Client::PacketType::GameEvent);
+				packet << static_cast<sf::Int32>(game_action.type);
+				packet << game_action.position.x;
+				packet << game_action.position.y;
+
+				m_socket.send(packet);
+			}
+
+			//Regular position updates
+			if (m_tick_clock.getElapsedTime() > sf::seconds(1.f / 20.f))
+			{
+				sf::Packet position_update_packet;
+				position_update_packet << static_cast<sf::Int32>(Client::PacketType::PositionUpdate);
+				position_update_packet << static_cast<sf::Int32>(m_local_player_identifiers.size());
+
+				for (sf::Int32 identifier : m_local_player_identifiers)
 				{
-					position_update_packet << identifier << bike->getPosition().x << bike->getPosition().y << static_cast<sf::Int32>(bike->GetHitPoints()) << bike->GetBoost() << bike->GetInvincibility();
+					if (Bike* bike = m_world.GetBike(identifier))
+					{
+						position_update_packet << identifier << bike->getPosition().x << bike->getPosition().y << static_cast<sf::Int32>(bike->GetHitPoints()) << bike->GetBoost() << bike->GetInvincibility();
+					}
 				}
+				m_socket.send(position_update_packet);
+				m_tick_clock.restart();
 			}
-			m_socket.send(position_update_packet);
-			m_tick_clock.restart();
+			m_time_since_last_packet += dt;
 		}
-		m_time_since_last_packet += dt;
 	}
 
 	//Failed to connect and waited for more than 5 seconds: Back to menu
@@ -247,8 +295,40 @@ bool MultiplayerGameState::Update(sf::Time dt)
 	return true;
 }
 
+void MultiplayerGameState::CheckPacket()
+{
+	//Handle messages from the server that may have arrived
+	sf::Packet packet;
+	if (m_socket.receive(packet) == sf::Socket::Done)
+	{
+		m_time_since_last_packet = sf::seconds(0.f);
+		sf::Int32 packet_type;
+		packet >> packet_type;
+		HandlePacket(packet_type, packet);
+	}
+	else
+	{
+		//Check for timeout with the server
+		if (m_time_since_last_packet > m_client_timeout)
+		{
+			m_connected = false;
+			m_failed_connection_text.setString("Lost connection to the server");
+			Utility::CentreOrigin(m_failed_connection_text);
+
+			m_failed_connection_clock.restart();
+		}
+	}
+}
+
+
 bool MultiplayerGameState::HandleEvent(const sf::Event& event)
 {
+	if(m_in_lobby && m_host)
+	{
+		m_in_lobby_ui.HandleEvent(event);
+	}
+	else{
+
 	//Game input handling
 	CommandQueue& commands = m_world.GetCommandQueue();
 
@@ -281,6 +361,7 @@ bool MultiplayerGameState::HandleEvent(const sf::Event& event)
 	else if(event.type == sf::Event::LostFocus)
 	{
 		m_has_focus = false;
+	}
 	}
 	return true;
 }
@@ -525,6 +606,11 @@ void MultiplayerGameState::HandlePacket(sf::Int32 packet_type, sf::Packet& packe
 				//bike->SetInvincibility(invincibility);
 			}
 		}
+	}
+	break;
+	case Server::PacketType::ServerStart:
+	{
+		m_in_lobby = false;
 	}
 	break;
 	}
