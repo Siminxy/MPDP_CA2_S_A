@@ -172,93 +172,95 @@ void GameServer::Tick()
 {
 	UpdateClientState();
 
-	//Check if the game is over = all planes position.y < offset
-	bool all_bike_done = true;
-	for(const auto& current : m_bike_info)
+	if (!m_in_lobby)
 	{
-		//As long one player has not crossed the finish line game on
-		if(current.second.m_position.x < 11000.0f)
+		//Check if the game is over = all planes position.y < offset
+		bool all_bike_done = true;
+		for (const auto& current : m_bike_info)
 		{
-			all_bike_done = false;
-		}
-	}
-
-	if(all_bike_done)
-	{
-		sf::Packet mission_success_packet;
-		mission_success_packet << static_cast<sf::Int32>(Server::PacketType::MissionSuccess);
-		SendToAll(mission_success_packet);
-	}
-
-	//Remove aircraft that have been destroyed
-	for (auto itr = m_bike_info.begin(); itr != m_bike_info.end();)
-	{
-		if(itr->second.m_hitpoints <= 0)
-		{
-			m_bike_info.erase(itr++);
-		}
-		else
-		{
-			++itr;
-		}
-	}
-
-	//Check if it is time to spawn obstacles and pickups
-	float x_pos = m_x_bounds;
-	//Not going to spawn enemies near the end
-	if(x_pos < 10500.0f)
-	{
-		if (Now() >= m_time_for_next_spawn + m_last_spawn_time)
-		{
-			std::size_t obs_count = 1 + Utility::RandomInt(3);
-
-			//TODO Do we really need two packets here?
-			//Send a spawn packet to the clients
-			for (std::size_t i = 0; i < obs_count; ++i)
+			//As long one player has not crossed the finish line game on
+			if (current.second.m_position.x < 11000.0f)
 			{
-				sf::Packet packet;
-				packet << static_cast<sf::Int32>(Server::PacketType::SpawnObstacle);
-				packet << static_cast<sf::Int32>(Utility::RandomInt(3));
-				packet << 650 + static_cast<float>(Utility::RandomInt(450));
-				packet << x_pos + 750 + static_cast<float>(Utility::RandomInt(350));
+				all_bike_done = false;
+			}
+		}
 
-				SendToAll(packet);
+		if (all_bike_done)
+		{
+			sf::Packet mission_success_packet;
+			mission_success_packet << static_cast<sf::Int32>(Server::PacketType::MissionSuccess);
+			SendToAll(mission_success_packet);
+		}
+
+		//Remove aircraft that have been destroyed
+		for (auto itr = m_bike_info.begin(); itr != m_bike_info.end();)
+		{
+			if (itr->second.m_hitpoints <= 0)
+			{
+				m_bike_info.erase(itr++);
+			}
+			else
+			{
+				++itr;
+			}
+		}
+
+		//Check if it is time to spawn obstacles and pickups
+		float x_pos = m_x_bounds;
+		//Not going to spawn enemies near the end
+		if (x_pos < 10500.0f)
+		{
+			if (Now() >= m_time_for_next_spawn + m_last_spawn_time)
+			{
+				std::size_t obs_count = 1 + Utility::RandomInt(3);
+
+				//TODO Do we really need two packets here?
+				//Send a spawn packet to the clients
+				for (std::size_t i = 0; i < obs_count; ++i)
+				{
+					sf::Packet packet;
+					packet << static_cast<sf::Int32>(Server::PacketType::SpawnObstacle);
+					packet << static_cast<sf::Int32>(Utility::RandomInt(3));
+					packet << 650 + static_cast<float>(Utility::RandomInt(450));
+					packet << x_pos + 750 + static_cast<float>(Utility::RandomInt(350));
+
+					SendToAll(packet);
+				}
+
+				m_last_spawn_time = Now();
+				m_time_for_next_spawn = sf::milliseconds(1000 + Utility::RandomInt(5000));
 			}
 
-			m_last_spawn_time = Now();
-			m_time_for_next_spawn = sf::milliseconds(1000 + Utility::RandomInt(5000));
-		}
-
-		if(Now() >= m_time_for_next_pickup_spawn + m_last_pickup_spawn_time)
-		{
-			std::size_t pickup_count = 1 + Utility::RandomInt(1);
-
-			//Spawn only boosts
-			for (std::size_t i = 0; i < pickup_count; ++i)
+			if (Now() >= m_time_for_next_pickup_spawn + m_last_pickup_spawn_time)
 			{
+				std::size_t pickup_count = 1 + Utility::RandomInt(1);
+
+				//Spawn only boosts
+				for (std::size_t i = 0; i < pickup_count; ++i)
+				{
+					sf::Packet packet;
+					packet << static_cast<sf::Int32>(Server::PacketType::SpawnPickup);
+					packet << static_cast<sf::Int32>(0);
+					packet << x_pos + 750 + +static_cast<float>(Utility::RandomInt(550));
+					packet << 750 + static_cast<float>(Utility::RandomInt(200));
+
+					SendToAll(packet);
+				}
+
+				//Spawn an invincibility
 				sf::Packet packet;
 				packet << static_cast<sf::Int32>(Server::PacketType::SpawnPickup);
-				packet << static_cast<sf::Int32>(0);
-				packet << x_pos + 750 + +static_cast<float>(Utility::RandomInt(550));
+				packet << static_cast<sf::Int32>(1);
+				packet << x_pos + 750 + +static_cast<float>(Utility::RandomInt(750));
 				packet << 750 + static_cast<float>(Utility::RandomInt(200));
 
 				SendToAll(packet);
+
+				m_last_pickup_spawn_time = Now();
+				m_time_for_next_pickup_spawn = sf::milliseconds(2000 + Utility::RandomInt(5000));
 			}
-
-			//Spawn an invincibility
-			sf::Packet packet;
-			packet << static_cast<sf::Int32>(Server::PacketType::SpawnPickup);
-			packet << static_cast<sf::Int32>(1);
-			packet << x_pos + 750 + +static_cast<float>(Utility::RandomInt(750));
-			packet << 750 + static_cast<float>(Utility::RandomInt(200));
-
-			SendToAll(packet);
-
-			m_last_pickup_spawn_time = Now();
-			m_time_for_next_pickup_spawn = sf::milliseconds(2000 + Utility::RandomInt(5000));
 		}
 	}
-
 }
 
 sf::Time GameServer::Now() const
