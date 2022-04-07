@@ -161,10 +161,10 @@ void MultiplayerGameState::Draw()
 				m_window.draw(m_broadcast_text);
 			}
 
-			//if (m_local_player_identifiers.size() < 2 && m_player_invitation_time < sf::seconds(0.5f))
-			//{
-			//	m_window.draw(m_player_invitation_text);
-			//}
+			if (m_local_player_identifiers.size() < 2 && m_player_invitation_time < sf::seconds(0.5f))
+			{
+				m_window.draw(m_player_invitation_text);
+			}
 		}
 	}
 	

@@ -25,8 +25,7 @@ GameServer::GameServer(sf::Vector2f battlefield_size)
 	, m_client_timeout(sf::seconds(1.f))
 	, m_max_connected_players(15)
 	, m_connected_players(0)
-//	, m_world_width(12000.0f)
-	, m_world_width(180000.0f)
+	, m_world_width(12000.0f)
 	, m_battlefield_rect(0.f, 0.f, m_world_width, 1017)
 	, m_battlefield_scrollspeed(-5.f)
 	, m_bike_count(0)
@@ -178,7 +177,7 @@ void GameServer::Tick()
 	for(const auto& current : m_bike_info)
 	{
 		//As long one player has not crossed the finish line game on
-		if(current.second.m_position.x < (m_world_width - 1000.f))
+		if(current.second.m_position.x < 11000.0f)
 		{
 			all_bike_done = false;
 		}
@@ -207,7 +206,7 @@ void GameServer::Tick()
 	//Check if it is time to spawn obstacles and pickups
 	float x_pos = m_x_bounds;
 	//Not going to spawn enemies near the end
-	if(x_pos < (m_world_width - 1000.f))
+	if(x_pos < 10500.0f)
 	{
 		if (Now() >= m_time_for_next_spawn + m_last_spawn_time)
 		{
@@ -221,7 +220,7 @@ void GameServer::Tick()
 				packet << static_cast<sf::Int32>(Server::PacketType::SpawnObstacle);
 				packet << static_cast<sf::Int32>(Utility::RandomInt(3));
 				packet << 650 + static_cast<float>(Utility::RandomInt(450));
-				packet << x_pos + static_cast<float>(Utility::RandomInt(350));
+				packet << x_pos + 750 + static_cast<float>(Utility::RandomInt(350));
 
 				SendToAll(packet);
 			}
@@ -240,7 +239,7 @@ void GameServer::Tick()
 				sf::Packet packet;
 				packet << static_cast<sf::Int32>(Server::PacketType::SpawnPickup);
 				packet << static_cast<sf::Int32>(0);
-				packet << x_pos +static_cast<float>(Utility::RandomInt(550));
+				packet << x_pos + 750 + +static_cast<float>(Utility::RandomInt(550));
 				packet << 750 + static_cast<float>(Utility::RandomInt(200));
 
 				SendToAll(packet);
@@ -250,7 +249,7 @@ void GameServer::Tick()
 			sf::Packet packet;
 			packet << static_cast<sf::Int32>(Server::PacketType::SpawnPickup);
 			packet << static_cast<sf::Int32>(1);
-			packet << x_pos + static_cast<float>(Utility::RandomInt(750));
+			packet << x_pos + 750 + +static_cast<float>(Utility::RandomInt(750));
 			packet << 750 + static_cast<float>(Utility::RandomInt(200));
 
 			SendToAll(packet);
