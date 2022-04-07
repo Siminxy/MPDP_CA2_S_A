@@ -25,8 +25,7 @@ GameServer::GameServer(sf::Vector2f battlefield_size)
 	, m_client_timeout(sf::seconds(1.f))
 	, m_max_connected_players(15)
 	, m_connected_players(0)
-//	, m_world_width(12000.0f)
-	, m_world_width(180000.0f)
+	, m_world_width(12000.0f)
 	, m_battlefield_rect(0.f, 0.f, m_world_width, 1017)
 	, m_battlefield_scrollspeed(-5.f)
 	, m_bike_count(0)
@@ -178,7 +177,7 @@ void GameServer::Tick()
 	for(const auto& current : m_bike_info)
 	{
 		//As long one player has not crossed the finish line game on
-		if(current.second.m_position.x < (m_world_width - 1000.f))
+		if(current.second.m_position.x < 11000.0f)
 		{
 			all_bike_done = false;
 		}
@@ -207,7 +206,7 @@ void GameServer::Tick()
 	//Check if it is time to spawn obstacles and pickups
 	float x_pos = m_x_bounds;
 	//Not going to spawn enemies near the end
-	if(x_pos < (m_world_width - 1000.f))
+	if(x_pos < 10500.0f)
 	{
 		if (Now() >= m_time_for_next_spawn + m_last_spawn_time)
 		{

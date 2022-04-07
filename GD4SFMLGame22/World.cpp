@@ -12,8 +12,6 @@
 #include "SoundNode.hpp"
 #include "Utility.hpp"
 
-
-//World lenght 12000 = ~ 1min gameplay -> 180000 = ~ 15 mins gameplay
 World::World(sf::RenderTarget& output_target, FontHolder& font, SoundPlayer& sounds, bool networked)
 	: m_target(output_target)
 	, m_camera(output_target.getDefaultView())
@@ -23,8 +21,7 @@ World::World(sf::RenderTarget& output_target, FontHolder& font, SoundPlayer& sou
 	, m_sounds(sounds)
 	, m_scenegraph()
 	, m_scene_layers()
-//	, m_world_bounds(0.f, 0.f, 12000, m_camera.getSize().x)
-	, m_world_bounds(0.f, 0.f, 180000, m_camera.getSize().x)
+	, m_world_bounds(0.f, 0.f, 12000, m_camera.getSize().x)
 	, m_spawn_position(m_camera.getSize().x/2.f, m_world_bounds.height - m_camera.getSize().y /2.f)
 	, m_scrollspeed(-200.f)
 	, m_scrollspeed_compensation(1.f)
@@ -229,7 +226,7 @@ void World::BuildScene()
 	// Add the finish line to the scene
 	sf::Texture& finish_texture = m_textures.Get(Textures::kFinishLine);
 	std::unique_ptr<SpriteNode> finish_sprite(new SpriteNode(finish_texture));
-	finish_sprite->setPosition(m_world_bounds.width - 1000.f, 650);
+	finish_sprite->setPosition(11000.0f, 650);
 	m_finish_sprite = finish_sprite.get();
 	m_scene_layers[static_cast<int>(Layers::kBackground)]->AttachChild(std::move(finish_sprite));
 
