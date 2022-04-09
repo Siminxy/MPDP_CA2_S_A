@@ -20,6 +20,7 @@ namespace Server
 		SpawnSelf,
 		UpdateClientState,
 		MissionSuccess,
+		MissionFail,
 		ServerStart,
 		PlayerCountUpdate
 	};

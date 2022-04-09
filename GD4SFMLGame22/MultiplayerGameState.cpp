@@ -195,7 +195,7 @@ bool MultiplayerGameState::Update(sf::Time dt)
 					if (Bike* bike = m_world.GetBike(identifier))
 					{
 						pause_update_packet << identifier;
-						//pause_update_packet << identifier << bike->getPosition().x << bike->getPosition().y << static_cast<sf::Int32>(bike->GetHitPoints()) << bike->GetBoost() << bike->GetInvincibility();
+						//pause_update_packet << identifier << bike->getPosition().x << bike->getPosition().y << static_cast<sf::Int32>(bike->GetHitPoints()) << bike->GetBoost();
 					}
 				}
 				m_socket.send(pause_update_packet);
@@ -292,7 +292,7 @@ bool MultiplayerGameState::Update(sf::Time dt)
 				{
 					if (Bike* bike = m_world.GetBike(identifier))
 					{
-						position_update_packet << identifier << bike->getPosition().x << bike->getPosition().y << static_cast<sf::Int32>(bike->GetHitPoints()) << bike->GetBoost() << bike->GetInvincibility();
+						position_update_packet << identifier << bike->getPosition().x << bike->getPosition().y << static_cast<sf::Int32>(bike->GetHitPoints()) << bike->GetBoost();
 					}
 				}
 				m_socket.send(position_update_packet);
@@ -512,15 +512,13 @@ void MultiplayerGameState::HandlePacket(sf::Int32 packet_type, sf::Packet& packe
 			sf::Int32 bike_identifier;
 			sf::Int32 hitpoints;
 			bool boost;
-			bool invincibility;
 			sf::Vector2f bike_position;
-			packet >> bike_identifier >> bike_position.x >> bike_position.y >> hitpoints >> boost >> invincibility;
+			packet >> bike_identifier >> bike_position.x >> bike_position.y >> hitpoints >> boost;
 
 			Bike* bike = m_world.AddBike(bike_identifier);
 			bike->setPosition(bike_position);
 			bike->SetHitpoints(hitpoints);
 			bike->SetBoost(boost);
-			//bike->SetInvincibility(invincibility);
 
 			m_players[bike_identifier].reset(new Player(&m_socket, bike_identifier, nullptr));
 		}
@@ -589,6 +587,13 @@ void MultiplayerGameState::HandlePacket(sf::Int32 packet_type, sf::Packet& packe
 	}
 	break;
 
+	//Mission Failed
+	case Server::PacketType::MissionFail:
+	{
+		RequestStackPush(StateID::kGameOver);
+	}
+	break;
+
 	//Pickup created
 	case Server::PacketType::SpawnPickup:
 	{
@@ -617,9 +622,8 @@ void MultiplayerGameState::HandlePacket(sf::Int32 packet_type, sf::Packet& packe
 			sf::Int32 bike_identifier;
 			sf::Int32 hitpoints;
 			bool boost;
-			bool invincibility;
 
-			packet >> bike_identifier >> bike_position.x >> bike_position.y >> hitpoints >> boost >> invincibility;
+			packet >> bike_identifier >> bike_position.x >> bike_position.y >> hitpoints >> boost;
 
 			Bike* bike = m_world.GetBike(bike_identifier);
 			bool is_local_bike = std::find(m_local_player_identifiers.begin(), m_local_player_identifiers.end(), bike_identifier) != m_local_player_identifiers.end();
@@ -629,7 +633,6 @@ void MultiplayerGameState::HandlePacket(sf::Int32 packet_type, sf::Packet& packe
 				bike->setPosition(interpolated_position);
 				bike->SetHitpoints(hitpoints);
 				bike->SetBoost(boost);
-				//bike->SetInvincibility(invincibility);
 			}
 		}
 	}

@@ -23,7 +23,6 @@ State::~State()
 {
 }
 
-
 void State::RequestStackPush(StateID state_id)
 {
 	m_stack->PushState(state_id);

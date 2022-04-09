@@ -176,17 +176,24 @@ void GameServer::Tick()
 	{
 		//Check if the game is over = all planes position.y < offset
 		bool all_bike_done = true;
+		bool only_dead_host = false;
 		for (const auto& current : m_bike_info)
 		{
 			//As long one player has not crossed the finish line game on
-			//And is not the dead host
+			//And the host, if is the final player, is not dead
 			if (current.second.m_position.x < 11000.0f && current.second.m_hitpoints != 22)
-			{
 				all_bike_done = false;
-			}
+			else if(m_bike_info.size() == 1 && current.second.m_hitpoints == 22)
+				only_dead_host = true;
 		}
 
-		if (all_bike_done)
+		if(only_dead_host)
+		{
+			sf::Packet mission_fail_packet;
+			mission_fail_packet << static_cast<sf::Int32>(Server::PacketType::MissionFail);
+			SendToAll(mission_fail_packet);
+		}
+		else if (all_bike_done)
 		{
 			sf::Packet mission_success_packet;
 			mission_success_packet << static_cast<sf::Int32>(Server::PacketType::MissionSuccess);
@@ -529,7 +536,7 @@ void GameServer::InformWorldState(sf::TcpSocket& socket)
 {
 	sf::Packet packet;
 	packet << static_cast<sf::Int32>(Server::PacketType::InitialState);
-	packet << m_world_width << m_battlefield_rect.top + m_battlefield_rect.height;
+	packet << m_world_width << m_battlefield_rect.height;
 	packet << static_cast<sf::Int32>(m_bike_count);
 
 	for(std::size_t i=0; i < m_connected_players; ++i)
