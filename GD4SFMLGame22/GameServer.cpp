@@ -179,7 +179,8 @@ void GameServer::Tick()
 		for (const auto& current : m_bike_info)
 		{
 			//As long one player has not crossed the finish line game on
-			if (current.second.m_position.x < 11000.0f)
+			//And is not the dead host
+			if (current.second.m_position.x < 11000.0f && current.second.m_hitpoints != 22)
 			{
 				all_bike_done = false;
 			}

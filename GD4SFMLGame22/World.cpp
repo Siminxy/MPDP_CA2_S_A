@@ -173,14 +173,11 @@ bool World::HasAlivePlayer() const
 
 bool World::HasPlayerReachedEnd() const
 {
-	if(Bike* aircraft = GetBike(1))
+	if (Bike* aircraft = GetBike(1))
 	{
-		if (!m_world_bounds.contains(aircraft->getPosition()))
-		{
-			if (aircraft->IsHost() && aircraft->IsHostDead())
-				return false;
-			return true;
-		}
+		sf::FloatRect gameBounds = m_world_bounds;
+		gameBounds.width -= 1000.0f;
+		return !gameBounds.contains(aircraft->getPosition());
 	}
 	return false;
 }
@@ -487,66 +484,43 @@ void World::HandleCollisions()
 	m_scenegraph.CheckSceneCollision(m_scenegraph, collision_pairs);
 	for(SceneNode::Pair pair : collision_pairs)
 	{
-		if(MatchesCategories(pair, Category::Type::kPlayerBike, Category::Type::kEnemyBike))
+		auto& player = static_cast<Bike&>(*pair.first);
+
+		if(player.GetHitPoints() != 22)
 		{
-			auto& player = static_cast<Bike&>(*pair.first);
-			auto& enemy = static_cast<Bike&>(*pair.second);
-			//Collision
-			player.PlayLocalSound(m_command_queue, SoundEffect::kCollision);
-			enemy.Destroy();
-			if (!player.GetInvincibility())
+			if (MatchesCategories(pair, Category::Type::kPlayerBike, Category::kPlayerBike))
 			{
-				player.Damage(enemy.GetHitPoints());
+				auto& player2 = static_cast<Bike&>(*pair.second);
+
+				if (player.GetInvincibility())
+					player2.Destroy();
+				else if (player2.GetInvincibility())
+					player.Destroy();
 			}
-		}
 
-		else if (MatchesCategories(pair, Category::Type::kPlayerBike, Category::Type::kPickup))
-		{
-			auto& player = static_cast<Bike&>(*pair.first);
-			auto& pickup = static_cast<Pickup&>(*pair.second);
-			//Apply the pickup effect
-			pickup.Apply(player);
-			pickup.Destroy();
-			player.PlayLocalSound(m_command_queue, SoundEffect::kCollectPickup);
-		}
-		
-		if(MatchesCategories(pair, Category::Type::kPlayerBike, Category::kPlayerBike))
-		{
-			auto& player1 = static_cast<Bike&>(*pair.first);
-			auto& player2 = static_cast<Bike&>(*pair.second);
-			//player1.DecreaseSpeed(10.f);
-			//player2.DecreaseSpeed(10.f);
-			//player1.PlayLocalSound(m_command_queue, SoundEffect::kCollision);
-
-			if (player1.GetInvincibility())
-				player2.Destroy();
-			else if (player2.GetInvincibility())
-				player1.Destroy();
-		}
-
-		if (MatchesCategories(pair, Category::Type::kPlayerBike, Category::kPickup))
-		{
-			auto& player = static_cast<Bike&>(*pair.first);
-			auto& pickup = static_cast<Pickup&>(*pair.second);
-			//Apply the pickup effect
-			pickup.Apply(player);
-			pickup.Destroy();
-			player.PlayLocalSound(m_command_queue, SoundEffect::kBoostGet);
-		}
-
-		else if (MatchesCategories(pair, Category::Type::kPlayerBike, Category::Type::kObstacle))
-		{
-			auto& bike = static_cast<Bike&>(*pair.first);
-			auto& obstacle = static_cast<Obstacle&>(*pair.second);
-
-			//Apply the slowdown to the plane
-			obstacle.Destroy();
-			bike.PlayLocalSound(m_command_queue, SoundEffect::kCollision);
-
-			if(!bike.GetInvincibility())
+			else if (MatchesCategories(pair, Category::Type::kPlayerBike, Category::kPickup))
 			{
-				bike.DecreaseSpeed(obstacle.GetSlowdown());
-				bike.Damage(10);
+				auto& pickup = static_cast<Pickup&>(*pair.second);
+				//Apply the pickup effect
+				pickup.Apply(player);
+				pickup.Destroy();
+				player.PlayLocalSound(m_command_queue, SoundEffect::kBoostGet);
+			}
+
+			else if (MatchesCategories(pair, Category::Type::kPlayerBike, Category::Type::kObstacle))
+			{
+				auto& player = static_cast<Bike&>(*pair.first);
+				auto& obstacle = static_cast<Obstacle&>(*pair.second);
+
+				//Apply the slowdown to the plane
+				obstacle.Destroy();
+				player.PlayLocalSound(m_command_queue, SoundEffect::kCollision);
+
+				if (!player.GetInvincibility())
+				{
+					player.DecreaseSpeed(obstacle.GetSlowdown());
+					player.Damage(10);
+				}
 			}
 		}
 	}
@@ -555,7 +529,7 @@ void World::HandleCollisions()
 void World::DestroyEntitiesOutsideView()
 {
 	Command command;
-	command.category = Category::Type::kPlayerBike | Category::Type::kObstacle;
+	command.category = Category::Type::kPlayerBike | Category::Type::kPickup | Category::Type::kObstacle;
 	command.action = DerivedAction<Entity>([this](Entity& e, sf::Time)
 	{
 		//Does the object intersect with the battlefield

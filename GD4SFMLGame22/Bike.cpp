@@ -143,7 +143,11 @@ void Bike::UpdateCurrent(sf::Time dt, CommandQueue& commands)
 	UpdateSpeed();
 
 	if (IsHost() && IsHostDead())
+	{
 		m_max_speed = m_speed = 0;
+		//Set the hitpoints to something unachievable but not negative
+		SetHitpoints(22);
+	}
 
 	//Set or remove invincibility
 	if (m_invincible_counter > 0 || m_invincibility)
