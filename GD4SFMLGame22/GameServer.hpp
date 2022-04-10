@@ -35,7 +35,7 @@ private:
 		sf::Vector2f m_position;
 		sf::Int32 m_hitpoints;
 		bool m_boost;
-		bool m_color_id;
+		//bool m_color_id;
 		std::map<sf::Int32, bool> m_realtime_actions;
 	};
 
