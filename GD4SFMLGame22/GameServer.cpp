@@ -183,7 +183,7 @@ void GameServer::Tick()
 			//And the host, if is the final player, is not dead
 			if (current.second.m_position.x < 11000.0f && current.second.m_hitpoints != 22)
 				all_bike_done = false;
-			else if(m_bike_info.size() == 1 && current.second.m_hitpoints == 22)
+			if(m_bike_info.size() == 1 && current.second.m_hitpoints == 22)
 				only_dead_host = true;
 		}
 
@@ -392,13 +392,11 @@ void GameServer::HandleIncomingPacket(sf::Packet& packet, RemotePeer& receiving_
 			sf::Int32 bike_hitpoints;
 			sf::Vector2f bike_position;
 			bool boost;
-			bool invincibility;
 			int color_id;
 
-			packet >> bike_identifier >> bike_position.x >> bike_position.y >> bike_hitpoints >> boost >> invincibility >> color_id;
+			packet >> bike_identifier >> bike_position.x >> bike_position.y >> bike_hitpoints >> boost >> color_id;
 			m_bike_info[bike_identifier].m_position = bike_position;
 			m_bike_info[bike_identifier].m_hitpoints = bike_hitpoints;
-			m_bike_info[bike_identifier].m_invincibility = invincibility;
 			m_bike_info[bike_identifier].m_boost = boost;
 			m_bike_info[bike_identifier].m_color_id = color_id;
 		}
@@ -545,7 +543,7 @@ void GameServer::InformWorldState(sf::TcpSocket& socket)
 		{
 			for(sf::Int32 identifier : m_peers[i]->m_bike_identifiers)
 			{
-				packet << identifier << m_bike_info[identifier].m_position.x << m_bike_info[identifier].m_position.y << m_bike_info[identifier].m_hitpoints << m_bike_info[identifier].m_boost << m_bike_info[identifier].m_invincibility << m_bike_info[identifier].m_color_id;
+				packet << identifier << m_bike_info[identifier].m_position.x << m_bike_info[identifier].m_position.y << m_bike_info[identifier].m_hitpoints << m_bike_info[identifier].m_boost << m_bike_info[identifier].m_color_id;
 			}
 		}
 	}
@@ -587,7 +585,7 @@ void GameServer::UpdateClientState()
 
 	for(const auto& bike : m_bike_info)
 	{
-		update_client_state_packet << bike.first << bike.second.m_position.x << bike.second.m_position.y << bike.second.m_hitpoints << bike.second.m_boost << bike.second.m_invincibility << bike.second.m_color_id;
+		update_client_state_packet << bike.first << bike.second.m_position.x << bike.second.m_position.y << bike.second.m_hitpoints << bike.second.m_boost << bike.second.m_color_id;
 	}
 
 	SendToAll(update_client_state_packet);
